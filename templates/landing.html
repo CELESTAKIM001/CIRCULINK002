@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}CIRCULINK — TUNA TAKA TAKA{% endblock %}
+{% block content %}
+<section class="hero hero-home">
+  <div class="hero-copy">
+    <div class="hero-badge"><span class="pulse"></span> CIRCULAR MATERIAL MARKETPLACE</div>
+    <p class="hero-kicker">TUNA TAKA TAKA.</p>
+    <h1>Turn unused material into <span>useful value.</span></h1>
+    <p class="lead">CIRCULINK connects people, collectors, makers and businesses so reusable and recoverable materials can be listed, matched, collected and put back into productive use.</p>
+    <div class="actions">
+      <a class="button primary" href="/auth/register">Start with CIRCULINK <span aria-hidden="true">→</span></a>
+      <a class="button secondary" href="/marketplace/">Explore the marketplace</a>
+    </div>
+    <div class="hero-links"><a href="/about">How CIRCULINK works</a><span>·</span><a href="/contact">Talk to the team</a></div>
+  </div>
+  <div class="hero-visual">
+    <div class="visual-orbit orbit-one"></div><div class="visual-orbit orbit-two"></div>
+    <div class="visual-card main-card">
+      <div class="visual-logo"><img src="{{ url_for('static', filename='img/circulink-logo-transparent.png') }}" alt=""></div>
+      <div><span class="mini-label">THE LOOP</span><strong>Source → Match → Collect → Reuse</strong></div>
+    </div>
+    <div class="float-card card-green"><span>01</span><strong>List</strong><small>What you have</small></div>
+    <div class="float-card card-blue"><span>02</span><strong>Find</strong><small>What is needed</small></div>
+    <div class="float-card card-sand"><span>03</span><strong>Move</strong><small>Where it belongs</small></div>
+  </div>
+</section>
+
+<section class="section intro-strip">
+  <div class="intro-stat"><strong>01</strong><span>Material marketplace</span></div>
+  <div class="intro-stat"><strong>02</strong><span>Pickup coordination</span></div>
+  <div class="intro-stat"><strong>03</strong><span>Payments & receipts</span></div>
+  <div class="intro-stat"><strong>04</strong><span>Operational dashboard</span></div>
+</section>
+
+<section class="section feature-section">
+  <div class="section-heading"><small class="eyebrow">HOW IT WORKS</small><h2>One connected journey from source to second use.</h2><p>Each part of the website links into the existing application flow, so visitors can move from learning to listing, buying, pickup and account management without dead ends.</p></div>
+  <div class="steps feature-grid">
+    <a href="/auth/register" class="feature-card"><b>01</b><div class="feature-icon">+</div><h3>List a source</h3><p>Register as an individual, source/collector or company and add material.</p><span>Register →</span></a>
+    <a href="/marketplace/" class="feature-card"><b>02</b><div class="feature-icon">↔</div><h3>Find a match</h3><p>Browse material categories for artists, tailors, repairers, builders and businesses.</p><span>Browse →</span></a>
+    <a href="/pickups/schedule" class="feature-card"><b>03</b><div class="feature-icon">⌖</div><h3>Arrange pickup</h3><p>Use a location, date and time to create a collection request.</p><span>Schedule →</span></a>
+    <a href="/dashboard/" class="feature-card"><b>04</b><div class="feature-icon">✓</div><h3>Track the loop</h3><p>Review inventory, pickups, transactions and notifications from your dashboard.</p><span>Dashboard →</span></a>
+  </div>
+</section>
+
+<section class="section material-section">
+  <div class="section-heading"><small class="eyebrow">MATERIAL STREAMS</small><h2>Designed around real materials.</h2></div>
+  <div class="material-showcase">
+    <a href="/marketplace/?category=electronics"><span class="material-icon">▣</span><strong>Electronics</strong><small>Laptops, boards, chargers & parts</small></a>
+    <a href="/marketplace/?category=paper"><span class="material-icon">▤</span><strong>Paper</strong><small>Offcuts, boxes, pulp & packaging</small></a>
+    <a href="/marketplace/?category=construction"><span class="material-icon">◆</span><strong>Construction</strong><small>Bricks, timber, tiles & components</small></a>
+    <a href="/marketplace/?category=textile"><span class="material-icon">▧</span><strong>Textiles</strong><small>Fabric and production offcuts</small></a>
+    <a href="/marketplace/?category=plastic"><span class="material-icon">◫</span><strong>Plastics</strong><small>Bottles, caps, containers & film</small></a>
+    <a href="/marketplace/"><span class="material-icon">＋</span><strong>More streams</strong><small>Explore the full marketplace</small></a>
+  </div>
+</section>
+
+<section class="section split story-section">
+  <div class="story-panel green-panel"><small class="eyebrow">FOR SOURCES</small><h2>Have material sitting idle?</h2><p>Create a listing with the quantity, terms and pickup point. The marketplace gives it a route to people and organizations that can use it.</p><a class="button light" href="/marketplace/add">List material</a></div>
+  <div class="story-panel blue-panel"><small class="eyebrow">FOR BUYERS</small><h2>Need a useful input?</h2><p>Search the marketplace, open a listing, add eligible materials to your cart and continue into the existing checkout flow.</p><a class="button light" href="/marketplace/">Browse materials</a></div>
+</section>
+
+<section class="section network-section">
+  <div class="section-heading"><small class="eyebrow">PICKUP NETWORK</small><h2>Set the place. Keep the loop moving.</h2><p>Leaflet and OpenStreetMap support the collection-point workflow already built into the application.</p></div>
+  <div id="map" class="map map-home"></div>
+</section>
+
+<section class="section sdg-section">
+  <div class="section-heading"><small class="eyebrow">SUSTAINABLE DEVELOPMENT GOALS</small><h2>Built with resource recovery in mind.</h2><p>These are CIRCULINK project objectives, not an official UN endorsement.</p></div>
+  <div class="sdgs"><div><b>06</b>Water</div><div><b>08</b>Decent work</div><div><b>09</b>Innovation</div><div><b>11</b>Sustainable cities</div><div><b>12</b>Responsible production</div><div><b>13</b>Climate</div><div><b>14</b>Life below water</div><div><b>15</b>Life on land</div></div>
+</section>
+
+<section class="section cta cta-home"><div><small class="eyebrow">READY WHEN YOU ARE</small><h2>Have material? Need material?</h2><p>Connect the next step to the part of CIRCULINK you need.</p></div><div class="cta-actions"><a class="button light" href="/auth/register">Create account</a><a class="button ghost-light" href="/contact">Contact CIRCULINK</a></div></section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script><script src="{{ url_for('static', filename='js/map.js') }}"></script>{% endblock %}

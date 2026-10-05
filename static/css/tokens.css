@@ -1,0 +1,7 @@
+
+:root{
+  --container:1180px;--gutter:clamp(18px,4vw,48px);--section-space:clamp(64px,8vw,104px);
+  --green:#087a3f;--green-2:#0e9b52;--green-dark:#04572d;--blue:#0875d1;--blue-2:#0a8ff0;
+  --ink:#10231b;--muted:#5b6c64;--bg:#f7fbf8;--surface:#fff;--surface-2:#eef7f1;--line:#d7e5dc;
+  --danger:#a4262c;--warning:#8a6116;--sand:#fff6df;--shadow:0 10px 28px rgba(12,55,34,.08);--shadow-strong:0 20px 60px rgba(12,55,34,.14);--radius:14px;--radius-lg:24px;
+}

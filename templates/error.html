@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}CIRCULINK — {{ code }}{% endblock %}
+{% block content %}
+<section class="state-page">
+  <div class="state-card state-card-error">
+    <span class="eyebrow">CIRCULINK · {{ code }}</span>
+    <div class="state-code">{{ code }}</div>
+    <h1>{{ title }}</h1>
+    <p>{{ message }}</p>
+    {% if description %}<p class="state-detail">{{ description }}</p>{% endif %}
+    {% if retryable %}<div class="state-progress"><span></span><small>This may be temporary. You can safely try again.</small></div>{% endif %}
+    {% if request_id %}<div class="request-ref">Reference: <code>{{ request_id }}</code></div>{% endif %}
+    <div class="actions">
+      {% if retry_url %}<a class="button primary" href="{{ retry_url }}">{{ retry_label or 'Try again' }}</a>{% else %}<button class="button primary" type="button" onclick="window.location.reload()">Try again</button>{% endif %}
+      <a class="button secondary" href="/">Return home</a>
+      <a class="button secondary" href="/contact">Contact support</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Checkout — CIRCULINK{% endblock %}
+{% block content %}
+{% if order %}
+<section class="checkout-shell">
+  <div class="checkout-main">
+    <span class="eyebrow">SECURE CHECKOUT</span>
+    <h1>Confirm your CIRCULINK payment.</h1>
+    <p class="checkout-lead">Your order becomes <b>PAID</b> only after CIRCULINK receives a confirmed M-Pesa result. If the callback is delayed, CIRCULINK also checks the transaction directly with Safaricom.</p>
+    <div class="checkout-summary">
+      <div><span>Subtotal</span><b>KES {{ "%.2f"|format(order.subtotal or order.total) }}</b></div>
+      <div><span>Service fee</span><b>KES {{ "%.2f"|format(order.service_fee or 0) }}</b></div>
+      <div><span>Pickup / delivery</span><b>KES {{ "%.2f"|format(order.pickup_fee or 0) }}</b></div>
+      <div><span>Tax ({{ "%.2f"|format(order.tax_percent or 0) }}%)</span><b>KES {{ "%.2f"|format(order.tax or 0) }}</b></div>
+      <div class="total"><span>Total</span><b>KES {{ "%.2f"|format(order.total) }}</b></div>
+    </div>
+  </div>
+  <div class="payment-card">
+    <div class="panel-head"><span class="eyebrow">M-PESA</span><h2>Pay with your phone</h2></div>
+    <label>Kenyan M-Pesa phone
+      <input id="phone" inputmode="numeric" autocomplete="tel" placeholder="2547XXXXXXXX" maxlength="12">
+    </label>
+    <button id="pay" type="button" class="button primary wide-button">Send STK Push</button>
+
+    <div class="payment-progress" id="payment-progress" hidden aria-live="polite">
+      <div class="payment-step active" data-step="request"><i>1</i><span>Request sent</span></div>
+      <div class="payment-step" data-step="confirm"><i>2</i><span>Confirm on phone</span></div>
+      <div class="payment-step" data-step="record"><i>3</i><span>Record payment</span></div>
+      <div class="payment-step" data-step="receipt"><i>4</i><span>Receipt & email</span></div>
+    </div>
+
+    <div id="status" class="payment-status" role="status" aria-live="polite">Ready when you are.</div>
+    <div id="payment-detail" class="payment-detail" hidden></div>
+    <div id="payment-actions" hidden>
+      <a id="receipt-link" class="button secondary" href="#">Verify receipt</a>
+      <a id="receipt-pdf" class="button secondary" href="#" hidden>Download PDF receipt</a>
+      <a class="button primary" href="/marketplace/">Continue shopping</a>
+    </div>
+    <button id="retry-pay" type="button" class="button secondary" hidden>Try payment again</button><button id="retry-email" type="button" class="button secondary" hidden>Retry receipt email</button>
+  </div>
+</section>
+{% else %}
+<section class="state-page"><div class="state-card"><span class="eyebrow">CHECKOUT</span><div class="state-code">404</div><h1>Order not found.</h1><p>The order may have expired, already been removed, or does not belong to this account.</p><a class="button primary" href="/marketplace/">Return to marketplace</a></div></section>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if order %}
+<style>
+.payment-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:18px 0}.payment-step{min-width:0;display:grid;gap:6px;text-align:center;color:#87948d;font-size:10px}.payment-step i{display:grid;place-items:center;width:28px;height:28px;margin:auto;border-radius:50%;background:#edf2ef;border:1px solid #d9e2dc;font-style:normal;font-weight:800}.payment-step.active,.payment-step.done{color:#087a3f}.payment-step.active i,.payment-step.done i{background:#eaf7ef;border-color:#9ed1b2;color:#087a3f}.payment-step.done i:before{content:'✓'}.payment-step.done i{font-size:0}.payment-status{margin-top:12px;padding:12px 13px;border:1px solid #dfe8e2;background:#fbfdfb;border-radius:10px;line-height:1.55}.payment-detail{margin-top:8px;color:#66746c;font-size:12px;line-height:1.5}.payment-card #payment-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.payment-card #payment-actions .button{flex:1;min-width:145px;text-align:center}.payment-card #retry-pay{margin-top:10px}.payment-card.is-success .payment-status{border-color:#a9d7ba;background:#f2fbf5}.payment-card.is-failed .payment-status{border-color:#e8c1c1;background:#fff7f7}
+</style>
+<script>
+const payButton=document.getElementById('pay');
+const statusBox=document.getElementById('status');
+const detailBox=document.getElementById('payment-detail');
+const actions=document.getElementById('payment-actions');
+const receiptLink=document.getElementById('receipt-link');
+const receiptPdf=document.getElementById('receipt-pdf');
+const retryButton=document.getElementById('retry-pay');
+const retryEmail=document.getElementById('retry-email');
+const progress=document.getElementById('payment-progress');
+const card=document.querySelector('.payment-card');
+let timer=null, attempts=0, busy=false;
+const MAX_POLLS=45;
+
+function setStep(step, state='active'){
+  const order=['request','confirm','record','receipt'];
+  document.querySelectorAll('.payment-step').forEach(el=>{
+    const i=order.indexOf(el.dataset.step), target=order.indexOf(step);
+    el.classList.toggle('done', i<target || (state==='done' && i<=target));
+    el.classList.toggle('active', i===target && state!=='done');
+  });
+}
+function showProgress(){progress.hidden=false;setStep('request');}
+function message(status,emailStatus){
+  const map={
+    paid:'Payment received and confirmed.',
+    failed:'M-Pesa did not confirm this payment.',
+    awaiting_callback:'Payment request sent. Check your phone and enter your M-Pesa PIN.',
+    processing:'Payment is being processed. We are checking the provider result.',
+    pending:'Waiting for M-Pesa confirmation.'
+  };
+  let text=map[status]||'Waiting for payment confirmation.';
+  if(status==='paid'){
+    if(emailStatus==='sent'||emailStatus==='already_sent') text+=' Your receipt has been sent to your registered email.';
+    else if(emailStatus==='failed') text+=' Payment is safe, but receipt email delivery needs another attempt.';
+    else if(emailStatus==='unavailable') text+=' Payment is safe. Email delivery is not configured; you can download the receipt below.';
+    else text+=' Preparing your receipt.';
+  }
+  return text;
+}
+function setBusy(on,label){
+  busy=on;payButton.disabled=on;payButton.textContent=on?(label||'Processing…'):'Send STK Push';
+}
+function stop(){if(timer){clearInterval(timer);timer=null;}busy=false;}
+function fail(text,retry=true){
+  stop();card.classList.add('is-failed');card.classList.remove('is-success');statusBox.textContent=text;retryButton.hidden=!retry;retryEmail.hidden=true;setBusy(false);
+}
+async function poll(){
+  if(attempts>=MAX_POLLS){fail('M-Pesa confirmation is taking longer than expected. Do not pay again yet if you already entered your PIN. You can wait and use Try payment again later.',true);return;}
+  attempts++;
+  try{
+    const r=await fetch('/api/mpesa/status/{{order._id}}',{cache:'no-store',headers:{'Accept':'application/json'}});
+    const d=await r.json().catch(()=>({ok:false,error:'The server returned an unreadable response.'}));
+    if(!r.ok){
+      if(r.status===404){fail('This order is no longer available.',false);return;}
+      if(r.status>=500){statusBox.textContent='The payment status service is temporarily unavailable. We will keep this payment screen safe; try again shortly.';return;}
+      fail(d.error||'Payment status could not be checked.',true);return;
+    }
+    setStep(d.status==='paid'?'record':'confirm');
+    statusBox.textContent=message(d.status,d.email_status);
+    detailBox.hidden=!d.provider_message;
+    detailBox.textContent=d.provider_message||'';
+    if(d.status==='paid'){
+      stop();card.classList.remove('is-failed');card.classList.add('is-success');
+      setStep('receipt', d.email_status==='sent'||d.email_status==='already_sent'?'done':'active');
+      payButton.disabled=true;retryButton.hidden=true;actions.hidden=false;
+      if(d.receipt){
+        receiptLink.href='/verify/receipt/'+encodeURIComponent(d.receipt);
+        receiptPdf.href='/receipt/'+encodeURIComponent(d.receipt)+'/pdf';
+        receiptPdf.hidden=false;
+      }
+      if(d.email_status==='failed') retryEmail.hidden=false;
+      if(d.email_status==='unavailable') retryEmail.hidden=true;
+    }else if(d.status==='failed'){
+      fail(d.provider_message||'M-Pesa did not confirm the payment. You can safely try again.',true);
+    }
+  }catch(err){
+    statusBox.textContent='We could not reach the payment status service. Your payment has not been marked failed. Retrying…';
+  }
+}
+async function startPayment(){
+  if(busy)return;
+  const phone=document.getElementById('phone').value.trim();
+  if(!/^((254)?7\d{8}|0?7\d{8})$/.test(phone)){statusBox.textContent='Enter a valid Kenyan M-Pesa number, for example 2547XXXXXXXX.';return;}
+  attempts=0;retryButton.hidden=true;actions.hidden=true;detailBox.hidden=true;card.classList.remove('is-success','is-failed');showProgress();setBusy(true,'Sending STK…');statusBox.textContent='Sending a secure payment request to your phone…';
+  try{
+    const r=await fetch('/api/mpesa/stkpush',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({order_id:'{{order._id}}',phone})});
+    const d=await r.json().catch(()=>({ok:false,error:'The server returned an unreadable response.'}));
+    if(!r.ok||!d.ok){
+      fail(d.error||'The payment request could not be started. Please try again.',true);return;
+    }
+    statusBox.textContent=d.message||'Payment request sent. Check your phone and enter your M-Pesa PIN.';setStep('confirm');
+    await poll();
+    if(!timer && busy===false)return;
+    timer=setInterval(poll,4000);
+  }catch(err){fail('The payment service could not be reached. Your order was not marked paid. Please try again.',true);}
+}
+payButton.addEventListener('click',startPayment);
+retryButton.addEventListener('click',startPayment);
+retryEmail.addEventListener('click',async()=>{
+  retryEmail.disabled=true;retryEmail.textContent='Sending…';
+  try{
+    const r=await fetch('/api/mpesa/receipt/{{order._id}}/retry-email',{method:'POST',headers:{'Accept':'application/json'}});
+    const d=await r.json().catch(()=>({ok:false,error:'Receipt service returned an unreadable response.'}));
+    statusBox.textContent=d.message||d.error||'Receipt email status updated.';
+    if(d.ok){retryEmail.hidden=true;setStep('receipt','done');}
+  }catch(e){statusBox.textContent='Receipt email service could not be reached. The payment remains confirmed.';}
+  retryEmail.disabled=false;retryEmail.textContent='Retry receipt email';
+});
+</script>
+{% endif %}
+{% endblock %}
