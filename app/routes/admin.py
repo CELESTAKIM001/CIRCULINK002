@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from flask import Blueprint, render_template, request, flash, redirect
+from flask import Blueprint, render_template, request, flash, redirect, jsonify, current_app
 from app.utils.auth import admin
 from app.db import get_db
 from app.services.analytics import stats
@@ -35,7 +35,7 @@ def action():
     db=get_db()
     if db is None: flash("Database is not connected.","error"); return redirect(request.referrer or "/admin/")
     collection=request.form.get("collection",""); item_id=request.form.get("id",""); action=request.form.get("action","").upper()
-    allowed={"users","listings","plans","notifications","material_requests","fulfillments","payouts","point_redemptions","certificates","contact_messages","forms","polls"}
+    allowed={"users","listings","plans","notifications","material_requests","fulfillments","payouts","point_redemptions","certificates","contact_messages"}
     if collection not in allowed or not item_id: flash("Invalid administrative action.","error"); return redirect(request.referrer or "/admin/")
     col=db[collection]
     status_map={"ACTIVATE":"active","DEACTIVATE":"inactive","APPROVE":"APPROVED","REJECT":"REJECTED","RESOLVE":"RESOLVED","READ":"READ","ARCHIVE":"ARCHIVED","QUEUE":"QUEUED","PAID":"PAID","REVOKE":"REVOKED","VERIFY":"VERIFIED"}
@@ -81,6 +81,76 @@ def listings(): return render_template("admin/listings.html",listings=_collectio
 @admin
 def payments(): return render_template("admin/payments.html",payments=_collection("transactions",300))
 
+
+def _reconcile_transaction(db, tx):
+    """Query Safaricom for one pending STK transaction and persist the result."""
+    from app.services.mpesa import query_stk
+    from app.routes.payments import _finalize_paid
+
+    checkout_id = tx.get("checkout_request_id")
+    if not checkout_id:
+        return {"ok": False, "status": tx.get("status"), "error": "No CheckoutRequestID is stored for this transaction."}
+
+    q = query_stk(checkout_id)
+    data = q.get("data") or {}
+    code = data.get("ResultCode")
+    update = {
+        "provider_query": data,
+        "last_reconciled_at": now(),
+        "updated_at": now(),
+    }
+    if q.get("ok") and code is not None:
+        try:
+            code_int = int(code)
+        except (TypeError, ValueError):
+            code_int = 99
+        if code_int == 0:
+            receipt = tx.get("mpesa_receipt") or data.get("MpesaReceiptNumber")
+            order = db.orders.find_one({"_id": tx.get("order_id")})
+            if receipt and order:
+                _finalize_paid(db, tx, order, receipt, data)
+                return {"ok": True, "status": "paid", "receipt": receipt}
+        elif code_int not in (1037, 4999, 1):
+            update["status"] = "failed"
+            update["failure_reason"] = data.get("ResultDesc") or "Safaricom reported a failed STK transaction."
+    db.transactions.update_one({"_id": tx["_id"]}, {"$set": update})
+    return {"ok": bool(q.get("ok")), "status": update.get("status", tx.get("status")), "provider_message": data.get("ResultDesc") or q.get("error")}
+
+
+@admin_bp.post("/payments/<tx_id>/reconcile")
+@admin
+def reconcile_payment(tx_id):
+    db = get_db()
+    tx = db.transactions.find_one({"_id": tx_id}) if db is not None else None
+    if not tx:
+        return jsonify(ok=False, error="Transaction not found."), 404
+    if tx.get("status") == "paid":
+        return jsonify(ok=True, status="paid", message="Transaction is already confirmed."), 200
+    result = _reconcile_transaction(db, tx)
+    _audit("PAYMENT_RECONCILED", tx_id, result.get("provider_message", result.get("status", "")))
+    return jsonify(result), 200 if result.get("ok") else 502
+
+
+@admin_bp.post("/payments/reconcile-pending")
+@admin
+def reconcile_pending_payments():
+    db = get_db()
+    if db is None:
+        return jsonify(ok=False, error="Payment database is unavailable."), 503
+    pending = list(db.transactions.find({
+        "status": {"$in": ["awaiting_callback", "processing", "pending"]},
+        "checkout_request_id": {"$exists": True, "$ne": ""},
+    }).sort("created_at", -1).limit(50))
+    results = []
+    for tx in pending:
+        try:
+            results.append({"id": tx["_id"], **_reconcile_transaction(db, tx)})
+        except Exception as exc:
+            current_app.logger.exception("Payment reconciliation failed for %s", tx.get("_id"))
+            results.append({"id": tx["_id"], "ok": False, "error": str(exc)})
+    _audit("PAYMENTS_RECONCILED", "PENDING", f"Processed {len(results)} pending transactions")
+    return jsonify(ok=True, count=len(results), results=results), 200
+
 @admin_bp.route("/plans",methods=["GET","POST"])
 @admin
 def plans():
@@ -115,104 +185,16 @@ def mhub():
 
 @admin_bp.get("/notifications")
 @admin
-def notifications():
-    db=get_db(); users=_collection("users",300,{"password_hash":0})
-    return render_template("admin/notifications.html",notifications=_collection("notifications"),users=users)
+def notifications(): return render_template("admin/notifications.html",notifications=_collection("notifications"))
 
 @admin_bp.post("/notifications/create")
 @admin
 def notification_create():
     db=get_db()
     if db is not None:
-        from app.repositories.notifications import add
-        audience=request.form.get("audience","all")
-        target=request.form.get("user_id","").strip() or None
-        doc=add(target,request.form.get("title",""),request.form.get("message",""),request.form.get("kind","info"),request.form.get("link_url",""),audience if audience in ("all","user") else "all")
-        if target:
-            recipient=db.users.find_one({"_id":target})
-            if recipient and recipient.get("email") and request.form.get("send_email"):
-                from app.services.email import send
-                send(recipient["email"],request.form.get("title","CIRCULINK update"),f"<h2>{request.form.get('title','CIRCULINK update')}</h2><p>{request.form.get('message','')}</p><p><a href=\"{request.form.get('link_url','/')}\">Open in CIRCULINK</a></p>")
-        _audit("NOTIFICATION_CREATED",doc["_id"],f"audience={audience};target={target or 'all'}")
-        flash("Notification created and made available in the website notification center.","success")
+        db.notifications.insert_one({"_id":new("not_"),"title":request.form.get("title",""),"message":request.form.get("message",""),"status":"active","created_at":now()}); _audit("NOTIFICATION_CREATED")
+        flash("Notification created.","success")
     return redirect("/admin/notifications")
-
-
-@admin_bp.route("/forms", methods=["GET","POST"])
-@admin
-def forms():
-    db=get_db()
-    users=_collection("users",300,{"password_hash":0})
-    if request.method=="POST":
-        from app.routes.forms import slugify, parse_fields
-        title=request.form.get("title","").strip()
-        fields=parse_fields(request.form.get("fields",""))
-        if not title or not fields:
-            flash("A form needs a title and at least one field.","error"); return redirect("/admin/forms")
-        base=slugify(title); slug=base; i=2
-        while db.forms.find_one({"slug":slug}): slug=f"{base}-{i}"; i+=1
-        target=request.form.get("target_user_id","").strip() or None
-        doc={"_id":new("frm_"),"slug":slug,"title":title,"description":request.form.get("description","").strip(),"fields":fields,"target_user_id":target,"status":"active","created_at":now(),"created_by":"ADMIN"}
-        db.forms.insert_one(doc)
-        if target:
-            from app.repositories.notifications import add
-            link=f"/forms/{slug}"
-            add(target,f"Form assigned: {title}","An administrator has shared a form with your CIRCULINK account.","form",link,"user")
-        _audit("FORM_CREATED",doc["_id"],f"slug={slug};target={target or 'public'}")
-        flash(f"Form created. Share /forms/{slug}","success")
-        return redirect("/admin/forms")
-    forms=list(db.forms.find().sort("created_at",-1).limit(200)) if db is not None else []
-    for f in forms:
-        f["submission_count"]=db.form_submissions.count_documents({"form_id":f["_id"]}) if db is not None else 0
-    return render_template("admin/forms.html",forms=forms,users=users)
-
-@admin_bp.post("/forms/<form_id>/toggle")
-@admin
-def form_toggle(form_id):
-    db=get_db(); f=db.forms.find_one({"_id":form_id}) if db is not None else None
-    if not f: flash("Form not found.","error")
-    else:
-        status="inactive" if f.get("status")=="active" else "active"; db.forms.update_one({"_id":form_id},{"$set":{"status":status,"updated_at":now()}}); _audit("FORM_STATUS",form_id,status); flash("Form status updated.","success")
-    return redirect("/admin/forms")
-
-@admin_bp.get("/forms/<form_id>/submissions")
-@admin
-def form_submissions(form_id):
-    db=get_db(); f=db.forms.find_one({"_id":form_id}) if db is not None else None
-    if not f: return render_template("error.html",code=404,title="Form not found",message="The form could not be found."),404
-    rows=list(db.form_submissions.find({"form_id":form_id}).sort("created_at",-1))
-    return render_template("admin/form_submissions.html",form=f,submissions=rows)
-
-@admin_bp.route("/polls", methods=["GET","POST"])
-@admin
-def polls():
-    db=get_db(); users=_collection("users",300,{"password_hash":0})
-    if request.method=="POST":
-        from app.routes.polls import slugify
-        title=request.form.get("title","").strip(); question=request.form.get("question","").strip(); options=[x.strip() for x in request.form.get("options","").splitlines() if x.strip()]
-        if not title or not question or len(options)<2: flash("A poll needs a title, question and at least two options.","error"); return redirect("/admin/polls")
-        base=slugify(title); slug=base; i=2
-        while db.polls.find_one({"slug":slug}): slug=f"{base}-{i}"; i+=1
-        target=request.form.get("target_user_id","").strip() or None
-        doc={"_id":new("pol_"),"slug":slug,"title":title,"question":question,"options":options,"target_user_id":target,"status":"active","created_at":now(),"created_by":"ADMIN"}
-        db.polls.insert_one(doc)
-        if target:
-            from app.repositories.notifications import add
-            add(target,f"Poll assigned: {title}","An administrator has invited you to participate in a CIRCULINK poll.","poll",f"/polls/{slug}","user")
-        _audit("POLL_CREATED",doc["_id"],f"slug={slug};target={target or 'public'}"); flash(f"Poll created. Share /polls/{slug}","success"); return redirect("/admin/polls")
-    polls=list(db.polls.find().sort("created_at",-1).limit(200)) if db is not None else []
-    for p in polls:
-        counts={o:db.poll_votes.count_documents({"poll_id":p["_id"],"option":o}) for o in p.get("options",[])}; p["counts"]=counts; p["total_votes"]=sum(counts.values())
-    return render_template("admin/polls.html",polls=polls,users=users)
-
-@admin_bp.post("/polls/<poll_id>/toggle")
-@admin
-def poll_toggle(poll_id):
-    db=get_db(); p=db.polls.find_one({"_id":poll_id}) if db is not None else None
-    if not p: flash("Poll not found.","error")
-    else:
-        status="inactive" if p.get("status")=="active" else "active"; db.polls.update_one({"_id":poll_id},{"$set":{"status":status,"updated_at":now()}}); _audit("POLL_STATUS",poll_id,status); flash("Poll status updated.","success")
-    return redirect("/admin/polls")
 
 @admin_bp.get("/audit")
 @admin

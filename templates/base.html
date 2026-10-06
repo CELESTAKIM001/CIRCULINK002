@@ -44,17 +44,6 @@
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
         <img src="{{ url_for('static', filename='icons/menu.svg') }}" alt="">
       </button>
-      {% if session.get('user_id') %}
-      <div class="notification-bell-wrap">
-        <a class="notification-bell" href="/notifications/" aria-label="Notifications{% if notification_unread %}: {{notification_unread}} unread{% endif %}" title="Notifications">
-          <span class="bell-glyph" aria-hidden="true"></span>{% if notification_unread %}<b>{{ notification_unread if notification_unread < 100 else '99+' }}</b>{% endif %}
-        </a>
-        <div class="notification-popover" aria-label="Recent notifications">
-          <div class="notification-popover-head"><strong>Notifications</strong><a href="/notifications/">View all</a></div>
-          {% for n in site_notifications[:5] %}<a class="notification-mini {% if not n.read %}unread{% endif %}" href="{{n.link_url or '/notifications/'}}"><span class="notification-mini-dot {{n.kind or 'info'}}"></span><span><strong>{{n.title}}</strong><small>{{n.message}}</small></span></a>{% else %}<div class="notification-empty">No new platform messages.</div>{% endfor %}
-        </div>
-      </div>
-      {% endif %}
       <nav id="site-nav" class="site-nav" aria-label="Primary navigation">
         <a href="/marketplace/">Marketplace</a>
         {% if session.get('user_id') %}<a href="/circular/requests">Requests</a><a href="/circular/wallet">Points</a>{% endif %}
@@ -62,7 +51,6 @@
         <a href="/contact">Contact</a>
         {% if session.get('user_id') %}
           <a href="/dashboard/">Dashboard</a>
-          <a href="/notifications/">Notifications</a>
           <a href="/auth/logout">Sign out</a>
         {% else %}
           <a href="/auth/login">Sign in</a>

@@ -12,9 +12,6 @@ from .routes.admin import admin_bp
 from .routes.api import api_bp
 from .routes.receipt import receipt_bp
 from .routes.circular import circular_bp
-from .routes.notifications import notifications_bp
-from .routes.forms import forms_bp
-from .routes.polls import polls_bp
 
 def create_app():
     import uuid
@@ -39,9 +36,6 @@ def create_app():
     @app.context_processor
     def global_context():
         from app.db import get_db
-        from app.utils.auth import user
-        from app.repositories.notifications import for_user, unread_count
-        current_user = user()
         default_ad = {"enabled": True, "kicker": "M-HUB 2026 · NYERI", "title": "Built during the M-Hub 2026 innovation season", "text": "CIRCULINK was developed by GEOPRAM TECHNOLOGIES and friends at Nyeri, connecting circular materials, people and businesses.", "link_url": "/about", "link_label": "About the build"}
         db = get_db()
         if db is not None:
@@ -50,10 +44,9 @@ def create_app():
                 default_ad.update(doc.get("value", {}))
             except Exception:
                 app.logger.exception("Unable to load M-Hub feature banner settings")
-        notifications = for_user(current_user["_id"], 12) if current_user else []
-        return {"mhub_ad": default_ad, "request_id": getattr(request, "circulink_request_id", ""), "current_user": current_user, "site_notifications": notifications, "notification_unread": unread_count(current_user["_id"]) if current_user else 0}
+        return {"mhub_ad": default_ad, "request_id": getattr(request, "circulink_request_id", "")}
 
-    for bp in [public_bp, auth_bp, marketplace_bp, pickups_bp, payments_bp, dashboard_bp, admin_bp, api_bp, receipt_bp, circular_bp, notifications_bp, forms_bp, polls_bp]:
+    for bp in [public_bp, auth_bp, marketplace_bp, pickups_bp, payments_bp, dashboard_bp, admin_bp, api_bp, receipt_bp, circular_bp]:
         app.register_blueprint(bp)
 
     def _is_json_request():

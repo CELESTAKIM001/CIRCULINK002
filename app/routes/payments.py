@@ -79,6 +79,13 @@ def status(order_id):
         data = q.get("data") or {}
         code = data.get("ResultCode")
         provider_message = data.get("ResultDesc") or q.get("error")
+        if q.get("ok"):
+            # Persist every provider query so an administrator can see what
+            # Safaricom actually returned even when the callback is delayed.
+            db.transactions.update_one(
+                {"_id": tx["_id"]},
+                {"$set": {"provider_query": data, "last_reconciled_at": _now(), "updated_at": _now()}}
+            )
         if q.get("ok") and code is not None:
             try:
                 code_int = int(code)

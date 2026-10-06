@@ -7,14 +7,22 @@ from flask import current_app
 
 
 def callback_url(request):
-    """Return the configured production callback URL when available.
+    """Return the public Daraja callback endpoint.
 
-    Falling back to the forwarded request origin keeps local/dev deployments
-    working while avoiding proxy-origin issues on Vercel in production.
+    Safaricom must be given a fully qualified, publicly reachable HTTPS URL.
+    A common production mistake is setting MPESA_CALLBACK_URL to only the
+    domain, which causes Daraja to POST to the wrong route. We normalize that
+    configuration and fall back to PUBLIC_APP_URL/request proxy headers.
     """
-    configured = current_app.config.get("MPESA_CALLBACK_URL")
+    configured = (current_app.config.get("MPESA_CALLBACK_URL") or "").strip().rstrip("/")
     if configured:
-        return configured.rstrip("/")
+        if configured.endswith("/api/mpesa/callback"):
+            return configured
+        return configured + "/api/mpesa/callback"
+
+    public_origin = (current_app.config.get("PUBLIC_APP_URL") or "").strip().rstrip("/")
+    if public_origin and public_origin.startswith(("http://", "https://")):
+        return public_origin + "/api/mpesa/callback"
 
     forwarded_host = request.headers.get("X-Forwarded-Host") or request.host
     forwarded_proto = request.headers.get("X-Forwarded-Proto", request.scheme).split(",")[0].strip()

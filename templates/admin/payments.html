@@ -1,0 +1,49 @@
+{% extends "base.html" %}{% block title %}Payments — Admin{% endblock %}{% block content %}<section class="admin-wrap"><div class="admin-head"><span class="eyebrow">PAYMENT CONTROL</span><h1>Daraja monitor</h1><p>STK initiation, callback state, receipts and provider query reconciliation.</p></div>{% include "admin/_nav.html" %}<div class="page-toolbar"><div><strong>Provider reconciliation</strong><div class="muted">If a customer paid but the callback was delayed, query Safaricom and record the confirmed result.</div></div><button type="button" class="button primary" id="reconcile-pending">Reconcile pending payments</button></div><div id="reconcile-result" class="admin-message" hidden></div><div class="table-wrap admin-table"><table><thead><tr><th>Date</th><th>Order</th><th>Amount</th><th>Status</th><th>Checkout ID</th><th>Receipt / error</th><th>Receipt email</th><th>Action</th></tr></thead><tbody>{% for x in payments %}<tr><td>{{x.created_at}}</td><td>{{x.order_id}}</td><td>KES {{x.amount}}</td><td><span class="status-chip {{x.status}}">{{x.status}}</span></td><td class="mono">{{x.checkout_request_id or '—'}}</td><td>{{x.mpesa_receipt or (x.daraja.error if x.daraja else '—')}}</td><td><span class="status-chip {{x.receipt_email_status or 'pending'}}">{{ 'sent' if x.receipt_email_sent else (x.receipt_email_status or 'pending') }}</span></td><td>{% if x.status in ['awaiting_callback','processing','pending'] and x.checkout_request_id %}<button type="button" class="button secondary mini-reconcile" data-id="{{x._id}}">Reconcile</button>{% else %}<span class="muted">—</span>{% endif %}</td></tr>{% else %}<tr><td colspan="8">No transactions.</td></tr>{% endfor %}</tbody></table></div></section>{% endblock %}
+{% block scripts %}<script>
+async function reconcile(url,button){
+  if(button){button.disabled=true;button.textContent='Checking…';}
+  try{
+    const r=await fetch(url,{method:'POST',headers:{'Accept':'application/json'}});
+    const d=await r.json().catch(()=>({ok:false,error:'Unreadable server response.'}));
+    if(!r.ok || !d.ok) throw new Error(d.error||d.provider_message||'Reconciliation failed.');
+    if(button){button.textContent=d.status==='paid'?'Confirmed':'Checked';}
+    return d;
+  }catch(e){
+    if(button){button.disabled=false;button.textContent='Retry';}
+    alert(e.message); return null;
+  }
+}
+document.querySelectorAll('.mini-reconcile').forEach(b=>b.addEventListener('click',async()=>{const d=await reconcile('/admin/payments/'+encodeURIComponent(b.dataset.id)+'/reconcile',b);if(d) setTimeout(()=>location.reload(),500);}));
+document.getElementById('reconcile-pending')?.addEventListener('click',async()=>{const b=document.getElementById('reconcile-pending');b.disabled=true;b.textContent='Reconciling…';const d=await reconcile('/admin/payments/reconcile-pending',b);if(d){document.getElementById('reconcile-result').hidden=false;document.getElementById('reconcile-result').textContent='Reconciliation completed for '+d.count+' pending transaction(s). Reloading…';setTimeout(()=>location.reload(),900);}});
+</script>{% endblock %}{% block scripts %}
+<script>
+async function reconcile(url, button){
+  if(button){button.disabled=true;button.textContent='Checking…';}
+  try{
+    const r=await fetch(url,{method:'POST',headers:{'Accept':'application/json'}});
+    const d=await r.json().catch(()=>({ok:false,error:'Unreadable server response.'}));
+    if(!r.ok || !d.ok) throw new Error(d.error||d.provider_message||'Reconciliation failed.');
+    if(button) button.textContent=d.status==='paid'?'Confirmed':'Checked';
+    return d;
+  }catch(e){
+    if(button){button.disabled=false;button.textContent='Retry';}
+    alert(e.message); return null;
+  }
+}
+document.querySelectorAll('.mini-reconcile').forEach(b=>b.addEventListener('click',async()=>{
+  const d=await reconcile('/admin/payments/'+encodeURIComponent(b.dataset.id)+'/reconcile',b);
+  if(d) setTimeout(()=>location.reload(),500);
+}));
+document.getElementById('reconcile-pending')?.addEventListener('click',async()=>{
+  const b=document.getElementById('reconcile-pending');
+  b.disabled=true; b.textContent='Reconciling…';
+  const d=await reconcile('/admin/payments/reconcile-pending',b);
+  if(d){
+    const box=document.getElementById('reconcile-result');
+    box.hidden=false;
+    box.textContent='Reconciliation completed for '+d.count+' pending transaction(s). Reloading…';
+    setTimeout(()=>location.reload(),900);
+  }
+});
+</script>
+{% endblock %}

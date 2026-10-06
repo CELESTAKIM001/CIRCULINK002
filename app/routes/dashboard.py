@@ -20,10 +20,7 @@ def home():
 
 @dashboard_bp.get("/inventory")
 @required
-def inventory():
-    db=get_db(); uid=user()["_id"]
-    listings=list(db.listings.find({"owner_id":uid}).sort("created_at",-1).limit(200)) if db is not None else []
-    return render_template("dashboard/inventory.html",listings=listings)
+def inventory():return render_template("dashboard/inventory.html",listings=find())
 @dashboard_bp.get("/pickups")
 @required
 def pickups():return render_template("dashboard/pickups.html")
