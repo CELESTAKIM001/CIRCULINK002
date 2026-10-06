@@ -79,7 +79,37 @@ def listings(): return render_template("admin/listings.html",listings=_collectio
 
 @admin_bp.get("/payments")
 @admin
-def payments(): return render_template("admin/payments.html",payments=_collection("transactions",300))
+def payments():
+    db = get_db()
+    payments = []
+    load_error = None
+    if db is None:
+        load_error = "Payment database is unavailable."
+    else:
+        try:
+            payments = list(
+                db.transactions.find({}).sort("created_at", -1).limit(300)
+            )
+        except Exception:
+            current_app.logger.exception("Unable to load admin payment monitor")
+            load_error = "Payment records could not be loaded right now."
+
+    counts = {"pending": 0, "paid": 0, "failed": 0}
+    for tx in payments:
+        status = tx.get("status")
+        if status == "paid":
+            counts["paid"] += 1
+        elif status == "failed":
+            counts["failed"] += 1
+        else:
+            counts["pending"] += 1
+
+    return render_template(
+        "admin/payments.html",
+        payments=payments,
+        counts=counts,
+        load_error=load_error,
+    )
 
 
 def _reconcile_transaction(db, tx):
@@ -89,7 +119,11 @@ def _reconcile_transaction(db, tx):
 
     checkout_id = tx.get("checkout_request_id")
     if not checkout_id:
-        return {"ok": False, "status": tx.get("status"), "error": "No CheckoutRequestID is stored for this transaction."}
+        return {
+            "ok": False,
+            "status": tx.get("status"),
+            "error": "No CheckoutRequestID is stored for this transaction.",
+        }
 
     q = query_stk(checkout_id)
     data = q.get("data") or {}
@@ -99,22 +133,61 @@ def _reconcile_transaction(db, tx):
         "last_reconciled_at": now(),
         "updated_at": now(),
     }
-    if q.get("ok") and code is not None:
-        try:
-            code_int = int(code)
-        except (TypeError, ValueError):
-            code_int = 99
-        if code_int == 0:
-            receipt = tx.get("mpesa_receipt") or data.get("MpesaReceiptNumber")
-            order = db.orders.find_one({"_id": tx.get("order_id")})
-            if receipt and order:
-                _finalize_paid(db, tx, order, receipt, data)
-                return {"ok": True, "status": "paid", "receipt": receipt}
-        elif code_int not in (1037, 4999, 1):
-            update["status"] = "failed"
-            update["failure_reason"] = data.get("ResultDesc") or "Safaricom reported a failed STK transaction."
+
+    if not q.get("ok"):
+        update["last_query_error"] = q.get("error")
+        db.transactions.update_one({"_id": tx["_id"]}, {"$set": update})
+        return {
+            "ok": False,
+            "status": tx.get("status"),
+            "provider_message": q.get("error"),
+        }
+
+    if code is None:
+        db.transactions.update_one({"_id": tx["_id"]}, {"$set": update})
+        return {
+            "ok": True,
+            "status": tx.get("status"),
+            "provider_message": "Safaricom has not returned a final result yet.",
+        }
+
+    try:
+        code_int = int(code)
+    except (TypeError, ValueError):
+        code_int = 99
+
+    if code_int == 0:
+        order = db.orders.find_one({"_id": tx.get("order_id")})
+        if not order:
+            return {"ok": False, "status": tx.get("status"), "error": "Order linked to this transaction was not found."}
+
+        receipt = tx.get("mpesa_receipt") or data.get("MpesaReceiptNumber")
+        updated_tx, email_status = _finalize_paid(db, tx, order, receipt, data)
+        return {
+            "ok": True,
+            "status": "paid",
+            "receipt": updated_tx.get("mpesa_receipt"),
+            "email_status": email_status,
+            "provider_message": data.get("ResultDesc") or "Safaricom confirmed the payment.",
+        }
+
+    if code_int in (1037, 4999):
+        update["status"] = tx.get("status") or "awaiting_callback"
+        db.transactions.update_one({"_id": tx["_id"]}, {"$set": update})
+        return {
+            "ok": True,
+            "status": update["status"],
+            "provider_message": data.get("ResultDesc") or "Payment is still being processed by Safaricom.",
+        }
+
+    update["status"] = "failed"
+    update["failure_reason"] = data.get("ResultDesc") or "Safaricom reported a failed STK transaction."
     db.transactions.update_one({"_id": tx["_id"]}, {"$set": update})
-    return {"ok": bool(q.get("ok")), "status": update.get("status", tx.get("status")), "provider_message": data.get("ResultDesc") or q.get("error")}
+    return {
+        "ok": True,
+        "status": "failed",
+        "provider_message": update["failure_reason"],
+    }
 
 
 @admin_bp.post("/payments/<tx_id>/reconcile")

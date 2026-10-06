@@ -17,29 +17,36 @@ def _find_order(db, order_id, uid):
     return db.orders.find_one({"_id": order_id, "buyer_id": uid}) if db is not None else None
 
 
-def _finalize_paid(db, tx, order, receipt, provider_data=None):
-    """Make payment state idempotently PAID, then attempt receipt delivery."""
-    if not receipt:
-        return tx, "unavailable"
-    db.transactions.update_one(
-        {"_id": tx["_id"]},
-        {"$set": {
-            "status": "paid",
-            "mpesa_receipt": receipt,
-            "provider_query": provider_data or tx.get("provider_query"),
-            "updated_at": _now(),
-        }}
-    )
-    db.orders.update_one(
-        {"_id": order["_id"]},
-        {"$set": {
-            "status": "paid",
-            "payment_status": "paid",
-            "mpesa_receipt": receipt,
-            "updated_at": _now(),
-        }}
-    )
+def _finalize_paid(db, tx, order, receipt=None, provider_data=None):
+    """Idempotently finalize a confirmed M-Pesa payment.
+
+    Safaricom STK Query can confirm ResultCode=0 without returning the
+    MpesaReceiptNumber. A confirmed provider result must still move the order
+    to PAID; the receipt is attached later if the callback supplies it.
+    """
+    set_fields = {
+        "status": "paid",
+        "provider_query": provider_data or tx.get("provider_query"),
+        "updated_at": _now(),
+    }
+    if receipt:
+        set_fields["mpesa_receipt"] = receipt
+
+    db.transactions.update_one({"_id": tx["_id"]}, {"$set": set_fields})
+
+    order_fields = {
+        "status": "paid",
+        "payment_status": "paid",
+        "updated_at": _now(),
+    }
+    if receipt:
+        order_fields["mpesa_receipt"] = receipt
+    db.orders.update_one({"_id": order["_id"]}, {"$set": order_fields})
+
     tx = db.transactions.find_one({"_id": tx["_id"]}) or tx
+    if not receipt:
+        return tx, "pending"
+
     buyer = db.users.find_one({"_id": order.get("buyer_id")})
     email_status = deliver_once(db, tx, order, buyer, receipt)
     return db.transactions.find_one({"_id": tx["_id"]}) or tx, email_status
@@ -92,13 +99,29 @@ def status(order_id):
             except (TypeError, ValueError):
                 code_int = 99
             if code_int == 0:
+                # STK Query confirms the payment even when its response does
+                # not contain the final M-Pesa receipt number. Do not leave a
+                # successful customer payment stuck in awaiting_callback.
                 receipt = tx.get("mpesa_receipt") or data.get("MpesaReceiptNumber")
-                if receipt:
-                    tx, email_status = _finalize_paid(db, tx, order, receipt, data)
-            elif code_int not in (1037, 4999, 1):
+                tx, email_status = _finalize_paid(db, tx, order, receipt, data)
+                provider_message = data.get("ResultDesc") or "Safaricom confirmed the payment."
+            elif code_int in (1037, 4999):
+                # Provider has not reached a conclusive state yet.
                 db.transactions.update_one(
                     {"_id": tx["_id"]},
-                    {"$set": {"status": "failed", "provider_query": data, "updated_at": _now()}}
+                    {"$set": {"provider_query": data, "last_reconciled_at": _now(), "updated_at": _now()}}
+                )
+            else:
+                # Includes user cancellation (1032), insufficient funds (1)
+                # and other terminal provider errors.
+                db.transactions.update_one(
+                    {"_id": tx["_id"]},
+                    {"$set": {
+                        "status": "failed",
+                        "provider_query": data,
+                        "failure_reason": data.get("ResultDesc") or "Safaricom reported a failed STK transaction.",
+                        "updated_at": _now(),
+                    }}
                 )
                 tx = db.transactions.find_one({"_id": tx["_id"]}) or tx
         elif not q.get("ok"):
@@ -216,14 +239,40 @@ def callback():
         })
         return jsonify(ResultCode=0, ResultDesc="Accepted; transaction will be reconciled"), 200
 
+    # Never allow a late/duplicate callback to downgrade an already confirmed
+    # transaction.
+    if tx.get("status") == "paid":
+        if x.get("result_code") == 0 and x.get("receipt") and not tx.get("mpesa_receipt"):
+            o = db.orders.find_one({"_id": tx.get("order_id")})
+            if o:
+                _finalize_paid(db, tx, o, x["receipt"], x)
+        return jsonify(ResultCode=0, ResultDesc="Accepted"), 200
+
     if x.get("result_code") == 0:
         o = db.orders.find_one({"_id": tx.get("order_id")})
-        if o and x.get("receipt"):
-            tx, email_status = _finalize_paid(db, tx, o, x["receipt"], x)
-            current_app.logger.info("Payment confirmed: order=%s receipt=%s email=%s", o.get("_id"), x.get("receipt"), email_status)
+        if o:
+            # Callback success is authoritative even if receipt metadata is
+            # temporarily absent. The receipt can be attached by a later
+            # callback/query without reversing the paid state.
+            tx, email_status = _finalize_paid(db, tx, o, x.get("receipt"), x)
+            current_app.logger.info(
+                "Payment confirmed: order=%s receipt=%s email=%s",
+                o.get("_id"), x.get("receipt"), email_status
+            )
         else:
-            db.transactions.update_one({"_id": tx["_id"]}, {"$set": {"status": "processing", "callback": x, "updated_at": _now()}})
+            db.transactions.update_one(
+                {"_id": tx["_id"]},
+                {"$set": {"status": "processing", "callback": x, "updated_at": _now()}}
+            )
     else:
-        db.transactions.update_one({"_id": tx["_id"]}, {"$set": {"status": "failed", "callback": x, "updated_at": _now()}})
+        db.transactions.update_one(
+            {"_id": tx["_id"]},
+            {"$set": {
+                "status": "failed",
+                "callback": x,
+                "failure_reason": x.get("result_desc") or "Safaricom reported a failed payment.",
+                "updated_at": _now(),
+            }}
+        )
 
     return jsonify(ResultCode=0, ResultDesc="Accepted"), 200

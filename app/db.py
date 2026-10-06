@@ -29,6 +29,10 @@ def init_db(app):
         _db.badges.create_index([("user_id", ASCENDING), ("created_at", DESCENDING)])
         _db.mhub_events.create_index([("created_at", DESCENDING)])
         _db.platform_revenue.create_index([("created_at", DESCENDING)])
+        _db.transactions.create_index([("order_id", ASCENDING), ("user_id", ASCENDING), ("created_at", DESCENDING)])
+        _db.transactions.create_index([("checkout_request_id", ASCENDING)], sparse=True)
+        _db.transactions.create_index([("status", ASCENDING), ("created_at", DESCENDING)])
+        _db.mpesa_callbacks.create_index([("checkout_request_id", ASCENDING), ("created_at", DESCENDING)])
         return _db
     except Exception:
         app.logger.exception("Unable to initialise MongoDB.")

@@ -60,7 +60,7 @@ const retryEmail=document.getElementById('retry-email');
 const progress=document.getElementById('payment-progress');
 const card=document.querySelector('.payment-card');
 let timer=null, attempts=0, busy=false;
-const MAX_POLLS=45;
+const MAX_POLLS=90;
 
 function setStep(step, state='active'){
   const order=['request','confirm','record','receipt'];
@@ -106,7 +106,7 @@ async function poll(){
       if(r.status>=500){statusBox.textContent='The payment status service is temporarily unavailable. We will keep this payment screen safe; try again shortly.';return;}
       fail(d.error||'Payment status could not be checked.',true);return;
     }
-    setStep(d.status==='paid'?'record':'confirm');
+    setStep(d.status==='paid'?'record':(d.status==='processing'?'record':'confirm'));
     statusBox.textContent=message(d.status,d.email_status);
     detailBox.hidden=!d.provider_message;
     detailBox.textContent=d.provider_message||'';
@@ -132,7 +132,7 @@ async function startPayment(){
   if(busy)return;
   const phone=document.getElementById('phone').value.trim();
   if(!/^((254)?7\d{8}|0?7\d{8})$/.test(phone)){statusBox.textContent='Enter a valid Kenyan M-Pesa number, for example 2547XXXXXXXX.';return;}
-  attempts=0;retryButton.hidden=true;actions.hidden=true;detailBox.hidden=true;card.classList.remove('is-success','is-failed');showProgress();setBusy(true,'Sending STK…');statusBox.textContent='Sending a secure payment request to your phone…';
+  attempts=0;retryButton.hidden=true;actions.hidden=true;detailBox.hidden=true;card.classList.remove('is-success','is-failed');showProgress();setBusy(true,'Waiting for M-Pesa confirmation…');statusBox.textContent='Sending a secure payment request to your phone…';
   try{
     const r=await fetch('/api/mpesa/stkpush',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({order_id:'{{order._id}}',phone})});
     const d=await r.json().catch(()=>({ok:false,error:'The server returned an unreadable response.'}));
