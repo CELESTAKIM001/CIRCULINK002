@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Receipt verification — CIRCULINK{% endblock %}
+{% block content %}
+<section class="ice-verify-wrap"><div class="ice-verify-card">
+  <div class="ice-verify-top"><img src="{{ url_for('static', filename='img/circulink-logo-transparent.png') }}" alt="CIRCULINK"><span class="ice-kicker">SECURE RECEIPT CHECK</span></div>
+  {% if valid %}
+  <div class="ice-verify-status valid"><span class="ice-status-symbol">✓</span><div><strong>Payment verified</strong><small>Confirmed record found in the CIRCULINK ledger.</small></div></div>
+  {% else %}
+  <div class="ice-verify-status invalid"><span class="ice-status-symbol">!</span><div><strong>Receipt not verified</strong><small>{% if unavailable %}The verification service is temporarily unavailable. Try again shortly.{% else %}No confirmed payment record was found for this reference.{% endif %}</small></div></div>
+  {% endif %}
+  <div class="ice-verify-amount"><span>Receipt reference</span><strong>{{ receipt }}</strong>{% if valid %}<small>KES {{ "{:,.2f}".format((transaction.amount or 0)|float) }}</small>{% endif %}</div>
+  {% if valid %}
+  <div class="ice-verify-facts"><div><span>Payment status</span><strong>Paid and confirmed</strong></div><div><span>Payment channel</span><strong>M-Pesa</strong></div><div><span>Transaction date</span><strong>{{ transaction.created_at.strftime('%d %B %Y, %H:%M') if transaction.created_at and transaction.created_at.strftime is defined else (transaction.created_at or 'Not recorded') }}</strong></div><div><span>Email receipt</span><strong>{{ 'Sent' if transaction.receipt_email_sent else (transaction.receipt_email_status or 'Pending')|title }}</strong></div></div>
+  <div class="actions" style="margin-top:18px"><a class="button primary" href="/receipt/{{ receipt }}/pdf">Download PDF receipt</a></div>
+  {% endif %}
+  <div class="ice-verify-foot"><span>Verification provided by CIRCULINK</span><a href="/marketplace/">Return to platform</a></div>
+</div></section>
+{% endblock %}

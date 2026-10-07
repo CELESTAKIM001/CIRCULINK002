@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Transaction Ledger — CIRCULINK{% endblock %}
+{% block content %}
+<div class="ledger-page">
+  <header class="ledger-hero">
+    <div class="ledger-hero-copy">
+      <span class="ledger-overline">ACCOUNT LEDGER / PAYMENT CONTROL</span>
+      <h1>Your transaction history, organised.</h1>
+      <p>Track payment states, receipt references and verification from one financial timeline.</p>
+    </div>
+    <div class="ledger-hero-side"><span class="ledger-live"></span><span>Ledger synchronized</span><small>Daraja / M-Pesa</small></div>
+  </header>
+  {% set ns = namespace(paid=0,pending=0,other=0,total=0) %}
+  {% for x in transactions %}{% if x.status == 'paid' %}{% set ns.paid=ns.paid+1 %}{% set ns.total=ns.total+(x.amount or 0)|float %}{% elif x.status in ['pending','awaiting_callback','processing'] %}{% set ns.pending=ns.pending+1 %}{% else %}{% set ns.other=ns.other+1 %}{% endif %}{% endfor %}
+  <section class="ledger-metrics">
+    <article class="ledger-metric ledger-metric-main"><span>Confirmed value</span><strong>KES {{"{:,.2f}".format(ns.total)}}</strong><small>{{ns.paid}} confirmed payment{{'' if ns.paid==1 else 's'}}</small></article>
+    <article class="ledger-metric"><span>Confirmed</span><strong>{{ns.paid}}</strong><small>Paid records</small></article>
+    <article class="ledger-metric"><span>Pending</span><strong>{{ns.pending}}</strong><small>Awaiting provider callback</small></article>
+    <article class="ledger-metric"><span>Other</span><strong>{{ns.other}}</strong><small>Failed or unconfirmed</small></article>
+  </section>
+  <section class="ledger-workspace">
+    <div class="ledger-toolbar">
+      <div><span class="ledger-overline">PAYMENT REGISTER</span><h2>All transactions</h2></div>
+      <div class="ledger-tools"><input id="ledger-search" type="search" placeholder="Search reference or status" aria-label="Search transactions"><select id="ledger-filter" aria-label="Filter transaction status"><option value="all">All states</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="other">Other</option></select></div>
+    </div>
+    <div class="ledger-list" id="ledger-list">
+      {% for x in transactions %}
+      {% set state = 'paid' if x.status=='paid' else ('pending' if x.status in ['pending','awaiting_callback','processing'] else 'other') %}
+      <article class="ledger-item" data-state="{{state}}" data-search="{{(x.mpesa_receipt or '') ~ ' ' ~ (x.order_id or '') ~ ' ' ~ (x.status or '')}}">
+        <div class="ledger-index">{{'%02d'|format(loop.index)}}</div>
+        <div class="ledger-main"><div class="ledger-ref">{{x.mpesa_receipt or 'Receipt pending'}}</div><div class="ledger-sub">{{x.order_id or 'Transaction reference unavailable'}}</div></div>
+        <div class="ledger-date">{{x.created_at.strftime('%d %b %Y') if x.created_at and x.created_at.strftime is defined else (x.created_at or '—')}}<small>{{x.created_at.strftime('%H:%M') if x.created_at and x.created_at.strftime is defined else ''}}</small></div>
+        <div class="ledger-amount">KES {{"{:,.2f}".format((x.amount or 0)|float)}}</div>
+        <div class="ledger-state"><span class="ledger-pill {{state}}">{{(x.status or 'unknown')|replace('_',' ')|title}}</span></div>
+        <button class="ledger-open" type="button" data-ledger-open="detail-{{loop.index}}" aria-expanded="false">Details</button>
+      </article>
+      <div class="ledger-detail" id="detail-{{loop.index}}" hidden>
+        <div class="ledger-detail-grid"><div><span>Receipt</span><strong>{{x.mpesa_receipt or 'Not issued yet'}}</strong></div><div><span>Order</span><strong>{{x.order_id or '—'}}</strong></div><div><span>Amount</span><strong>KES {{"{:,.2f}".format((x.amount or 0)|float)}}</strong></div><div><span>Status</span><strong>{{(x.status or 'unknown')|replace('_',' ')|title}}</strong></div><div><span>Provider</span><strong>M-Pesa / Daraja</strong></div><div><span>Email receipt</span><strong>{{'Sent' if x.receipt_email_sent else ((x.receipt_email_status or 'pending')|title)}}</strong></div></div>
+        {% if x.mpesa_receipt %}<a class="ledger-verify" href="/verify/receipt/{{x.mpesa_receipt}}" target="_blank" rel="noopener">Verify this receipt <span>↗</span></a>{% endif %}
+      </div>
+      {% else %}<div class="ledger-empty"><span>00</span><h3>No transactions yet</h3><p>Your payment records will appear here once a transaction is initiated.</p><a href="/marketplace/" class="ledger-primary">Explore marketplace</a></div>{% endfor %}
+    </div>
+    <footer class="ledger-footer"><span id="ledger-count">{{transactions|length}} records</span><span>Payment state is based on the latest CIRCULINK provider record.</span></footer>
+  </section>
+</div>
+<script>
+(function(){const list=document.getElementById('ledger-list'),search=document.getElementById('ledger-search'),filter=document.getElementById('ledger-filter'),count=document.getElementById('ledger-count');if(!list)return;const rows=[...list.querySelectorAll('.ledger-item')];function apply(){const q=(search.value||'').toLowerCase().trim(),f=filter.value;let n=0;rows.forEach(r=>{const ok=(f==='all'||r.dataset.state===f)&&(!q||r.dataset.search.toLowerCase().includes(q));r.hidden=!ok;const d=document.getElementById(r.querySelector('[data-ledger-open]').dataset.ledgerOpen);if(!ok){d.hidden=true;r.querySelector('[data-ledger-open]').setAttribute('aria-expanded','false')}if(ok)n++});count.textContent=n+' record'+(n===1?'':'s')}search.addEventListener('input',apply);filter.addEventListener('change',apply);list.addEventListener('click',e=>{const b=e.target.closest('[data-ledger-open]');if(!b)return;const d=document.getElementById(b.dataset.ledgerOpen),open=!d.hidden;d.hidden=open;b.setAttribute('aria-expanded',String(!open));});})();
+</script>
+{% endblock %}

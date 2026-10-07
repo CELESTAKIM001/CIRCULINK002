@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block title %}Certificate Verification — CIRCULINK{% endblock %}{% block content %}
+<section class="verify-shell"><div class="verify-card">
+  <div class="verify-brand"><img src="{{ url_for('static',filename='img/circulink-logo-transparent.png') }}" alt="CIRCULINK"><div><span class="eyebrow">PUBLIC VERIFICATION</span><h1>Certificate verification</h1></div></div>
+  {% if certificate and certificate.status == 'VALID' %}<div class="verify-valid"><strong>VALID CERTIFICATE</strong><span>This certificate matches a recorded CIRCULINK certificate.</span></div>{% else %}<div class="verify-invalid"><strong>NOT VERIFIED</strong><span>No valid certificate record was found for this number.</span></div>{% endif %}
+  <div class="verify-grid"><div><span>Certificate number</span><strong>{{certificate.certificate_no if certificate else certificate_no}}</strong></div>{% if certificate %}<div><span>Holder</span><strong>{{certificate.owner_name}}</strong></div><div><span>Certificate type</span><strong>{{certificate.certificate_type}}</strong></div><div><span>Level</span><strong>{{certificate.level}}</strong></div><div><span>Issued</span><strong>{{certificate.issued_at}}</strong></div><div><span>Status</span><strong>{{certificate.status}}</strong></div>{% endif %}</div>
+  <p class="verify-note">Verification record provided by CIRCULINK. Certificate validity depends on the live record displayed here.</p>
+</div></section>{% endblock %}
