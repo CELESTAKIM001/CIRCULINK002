@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Create listing — CIRCULINK{% endblock %}
+{% block content %}
+<section class="page-head split-head"><div><small class="eyebrow">CREATE LISTING</small><h1>Put a real material photo on the marketplace.</h1><p>A listing cannot be published without at least one genuine photo. CIRCULINK compresses uploads to compact WebP and stores them inside the platform database; no external image API is required.</p></div><div class="photo-rule"><b>Photo requirements</b><span>JPG · JPEG · PNG · WEBP</span><span>Up to 5 photos · 8 MB each</span></div></section>
+<form class="listing-form" method="post" enctype="multipart/form-data">
+  <section class="form-panel"><div class="panel-head"><span class="eyebrow">MATERIAL</span><h2>Describe the item</h2></div>
+    <div class="form-grid"><label>Title<input name="title" required maxlength="120" placeholder="Clean aluminum cans"></label><label>Category<select name="category"><option>plastic</option><option>paper</option><option>construction</option><option>electronics</option><option>textile</option><option>machinery</option></select></label><label class="wide">Description<textarea name="material" required placeholder="Condition, preparation, intended reuse..."></textarea></label><label>Quantity<input name="quantity" type="number" min="0.01" step=".01" required></label><label>Unit<input name="unit" placeholder="kg or piece" required></label><label>Price per unit (KES)<input name="price" type="number" min="0" step=".01" required></label><label class="wide">Terms<textarea name="terms" placeholder="Pickup conditions, minimum quantity, notes..."></textarea></label><label>Location name<input name="location_name" placeholder="Collection point or area"></label><label>Latitude<input id="lat" name="lat" type="number" step="any" placeholder="-1.2864"></label><label>Longitude<input id="lng" name="lng" type="number" step="any" placeholder="36.8172"></label></div>
+  </section>
+  <section class="form-panel"><div class="panel-head"><span class="eyebrow">LOCATION</span><h2>Set a pickup point</h2></div><div id="listing-map" class="map listing-map"></div><small class="field-help">Click the map to set latitude and longitude, or enter them manually.</small></section><section class="form-panel"><div class="panel-head"><span class="eyebrow">REAL PHOTOS</span><h2>Upload listing photos</h2></div>
+    <label class="dropzone" for="images"><input id="images" name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple required><span class="drop-icon">+</span><strong>Choose photos</strong><small>Drag and drop is supported by your browser. Photos are normalized to WebP.</small></label>
+    <div id="image-preview" class="image-preview" aria-live="polite"></div>
+  </section>
+  <div class="form-submit"><button class="button primary" type="submit">Publish real listing</button><a class="button secondary" href="/marketplace/">Cancel</a></div>
+</form>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script><script src="{{ url_for('static', filename='js/listing-upload.js') }}"></script><script src="{{ url_for('static', filename='js/listing-map.js') }}"></script>{% endblock %}

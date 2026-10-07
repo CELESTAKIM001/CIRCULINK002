@@ -1,0 +1,2687 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body style="margin:0">
+<title>Circulink Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap">
+<style>
+/* Layout concept: app shell with fixed left rail, one working surface per role.
+   Asymmetric 60/40 splits, large numeric anchors, green for structure, orange for one critical highlight. */
+:root {
+  --bg: #F7F5EF;
+  --surface: #FCFBF8;
+  --surface-2: #EFEBE1;
+  --sunken: #F1EEE5;
+  --fg: #262B2E;
+  --muted: #5C6468;
+  --faint: #8A9290;
+  --line: rgba(38, 43, 46, 0.12);
+  --line-strong: rgba(38, 43, 46, 0.22);
+  --green: #2E9E4F;
+  --green-ink: #1F7A3A;
+  --green-tint: #E3F3E7;
+  --on-green: #FFFFFF;
+  --orange: #FF7A1A;
+  --orange-ink: #B34C00;
+  --orange-tint: #FFE8D4;
+  --danger: #C0372C;
+  --danger-tint: #FBE3E0;
+  --blue: #2F6FA8;
+  --blue-tint: #E0EBF5;
+  --shadow: 0 1px 2px rgba(38, 43, 46, 0.06), 0 8px 24px rgba(38, 43, 46, 0.08);
+  --map-land: #EAE7DC;
+  --map-road: #FCFBF8;
+  --map-park: #D3E8D2;
+  --map-water: #CFE0EA;
+  --display: "Montserrat", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --r-lg: 24px;
+  --r-md: 16px;
+  --r-sm: 10px;
+  --rail: 248px;
+  --gutter: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121718;
+    --surface: #1A2123;
+    --surface-2: #232B2D;
+    --sunken: #161C1E;
+    --fg: #ECEFEA;
+    --muted: #A2ADAA;
+    --faint: #75807D;
+    --line: rgba(236, 239, 234, 0.12);
+    --line-strong: rgba(236, 239, 234, 0.24);
+    --green: #4CC06D;
+    --green-ink: #6AD58A;
+    --green-tint: #1B3524;
+    --on-green: #0D1F13;
+    --orange: #FF8F3D;
+    --orange-ink: #FFA765;
+    --orange-tint: #3A2616;
+    --danger: #FF7B6E;
+    --danger-tint: #3A1E1B;
+    --blue: #7DB2E3;
+    --blue-tint: #1B2C3B;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+    --map-land: #1E2628;
+    --map-road: #2C3638;
+    --map-park: #1F3A2A;
+    --map-water: #1B3040;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121718;
+  --surface: #1A2123;
+  --surface-2: #232B2D;
+  --sunken: #161C1E;
+  --fg: #ECEFEA;
+  --muted: #A2ADAA;
+  --faint: #75807D;
+  --line: rgba(236, 239, 234, 0.12);
+  --line-strong: rgba(236, 239, 234, 0.24);
+  --green: #4CC06D;
+  --green-ink: #6AD58A;
+  --green-tint: #1B3524;
+  --on-green: #0D1F13;
+  --orange: #FF8F3D;
+  --orange-ink: #FFA765;
+  --orange-tint: #3A2616;
+  --danger: #FF7B6E;
+  --danger-tint: #3A1E1B;
+  --blue: #7DB2E3;
+  --blue-tint: #1B2C3B;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --map-land: #1E2628;
+  --map-road: #2C3638;
+  --map-park: #1F3A2A;
+  --map-water: #1B3040;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+h1, h2, h3, h4 {
+  font-family: var(--display);
+  line-height: 1.12;
+  margin: 0;
+  text-wrap: balance;
+  letter-spacing: -0.01em;
+}
+p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--green-ink); }
+:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; border-radius: 6px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.icon { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.icon.sm { width: 16px; height: 16px; }
+.icon.lg { width: 28px; height: 28px; }
+
+/* ---------- App shell ---------- */
+.app { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); min-height: 100%; }
+.rail {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  align-self: start;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 16px;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  overflow-y: auto;
+}
+.brand { display: flex; align-items: center; gap: 12px; padding: 0 8px; text-decoration: none; color: var(--fg); }
+.brand-mark { width: 44px; height: 44px; flex: none; border-radius: 12px; background: #fff; padding: 2px; }
+.brand-name { font-family: var(--display); font-weight: 800; font-size: 17px; letter-spacing: 0.06em; line-height: 1; }
+.brand-sub { font-size: 10px; font-weight: 600; letter-spacing: 0.32em; color: var(--green-ink); margin-top: 5px; }
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav-label { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); padding: 0 12px 6px; }
+.nav button {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; text-align: left;
+  padding: 10px 12px;
+  border: 0; border-radius: var(--r-sm);
+  background: transparent; color: var(--muted);
+  font-weight: 500;
+}
+.nav button:hover { background: var(--sunken); color: var(--fg); }
+.nav button[aria-current="page"] { background: var(--green); color: var(--on-green); }
+.nav .count {
+  margin-left: auto; font-size: 11px; font-weight: 600;
+  padding: 2px 7px; border-radius: 99px;
+  background: var(--orange); color: #1B1005;
+}
+.rail-foot { margin-top: auto; display: flex; flex-direction: column; gap: 12px; }
+.sample-note {
+  font-size: 12px; color: var(--muted);
+  background: var(--sunken);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+}
+.main { min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 32px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.menu-btn { display: none; }
+.searchbox {
+  display: flex; align-items: center; gap: 8px;
+  flex: 1 1 280px; max-width: 460px; min-width: 0;
+  padding: 0 14px; height: 42px;
+  border: 1px solid var(--line-strong); border-radius: 99px;
+  background: var(--surface);
+  color: var(--muted);
+}
+.searchbox input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; height: 100%; }
+.top-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.icon-btn {
+  position: relative;
+  width: 42px; height: 42px;
+  display: grid; place-items: center;
+  border: 1px solid var(--line-strong); border-radius: 50%;
+  background: var(--surface); color: var(--fg);
+}
+.icon-btn:hover { border-color: var(--green); color: var(--green-ink); }
+.icon-btn .dot { position: absolute; top: 9px; right: 10px; width: 9px; height: 9px; border-radius: 50%; background: var(--orange); border: 2px solid var(--surface); }
+.role-switch { display: inline-flex; padding: 3px; border-radius: 99px; background: var(--sunken); border: 1px solid var(--line); }
+.role-switch button { border: 0; background: transparent; padding: 7px 14px; border-radius: 99px; font-weight: 600; font-size: 13px; color: var(--muted); }
+.role-switch button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--green-tint); color: var(--green-ink);
+  font-weight: 700; font-family: var(--display); font-size: 14px;
+}
+.content { padding: 32px 32px 64px; min-width: 0; }
+.view[hidden] { display: none; }
+
+/* ---------- Typography helpers ---------- */
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green-ink); }
+.page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+.page-head h1 { font-size: clamp(28px, 3.4vw, 44px); font-weight: 800; }
+.page-head p { color: var(--muted); max-width: 56ch; margin-top: 8px; }
+.h2 { font-size: 22px; font-weight: 700; }
+.h3 { font-size: 17px; font-weight: 700; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.tiny { font-size: 12px; }
+.num-xl { font-family: var(--display); font-weight: 800; font-size: clamp(56px, 8vw, 112px); line-height: 0.95; letter-spacing: -0.03em; }
+.num-lg { font-family: var(--display); font-weight: 800; font-size: clamp(36px, 4.4vw, 56px); line-height: 1; letter-spacing: -0.02em; }
+.num-md { font-family: var(--display); font-weight: 700; font-size: 28px; line-height: 1.05; }
+.c-green { color: var(--green-ink); }
+.c-orange { color: var(--orange-ink); }
+.c-danger { color: var(--danger); }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 44px; padding: 0 20px;
+  border-radius: 99px; border: 1px solid transparent;
+  font-weight: 600; font-size: 14px;
+  white-space: nowrap;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--green); color: var(--on-green); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.accent { background: var(--orange); color: #1B1005; }
+.btn.ghost { background: transparent; border-color: var(--line-strong); color: var(--fg); }
+.btn.ghost:hover { border-color: var(--green); color: var(--green-ink); }
+.btn.sm { height: 34px; padding: 0 14px; font-size: 13px; }
+.btn.danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+/* ---------- Cards and containers ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  min-width: 0;
+}
+.card.lift { box-shadow: var(--shadow); }
+.card.tint { background: var(--green-tint); border-color: transparent; }
+.card.sand { background: var(--surface-2); border-color: transparent; }
+.card.solid { background: var(--green); color: var(--on-green); border-color: transparent; }
+.card.flag { border: 2px solid var(--orange); }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.grid { display: grid; gap: 24px; }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.split-60 { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+.split-40 { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.stack.sm { gap: 8px; }
+.stack.lg { gap: 24px; }
+.row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.row.between { justify-content: space-between; }
+.grow { flex: 1; min-width: 0; }
+.kpi { display: flex; flex-direction: column; gap: 10px; }
+.kpi .label { font-size: 13px; color: var(--muted); font-weight: 500; }
+.kpi .delta { font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.delta.up { color: var(--green-ink); }
+.delta.down { color: var(--danger); }
+.icon-chip {
+  width: 40px; height: 40px; border-radius: 12px; flex: none;
+  display: grid; place-items: center;
+  background: var(--green-tint); color: var(--green-ink);
+}
+.icon-chip.orange { background: var(--orange-tint); color: var(--orange-ink); }
+.icon-chip.blue { background: var(--blue-tint); color: var(--blue); }
+.icon-chip.solid { background: var(--green); color: var(--on-green); }
+
+/* ---------- Pills, chips, badges ---------- */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 99px;
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+  background: var(--sunken); color: var(--muted);
+}
+.pill.ok { background: var(--green-tint); color: var(--green-ink); }
+.pill.warn { background: var(--orange-tint); color: var(--orange-ink); }
+.pill.bad { background: var(--danger-tint); color: var(--danger); }
+.pill.info { background: var(--blue-tint); color: var(--blue); }
+.pill .icon { width: 13px; height: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 7px 14px; border-radius: 99px;
+  border: 1px solid var(--line-strong); background: var(--surface);
+  font-size: 13px; font-weight: 500; color: var(--fg);
+}
+.chip[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: var(--on-green); }
+.tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--sunken); border-radius: 99px; border: 1px solid var(--line); max-width: 100%; overflow-x: auto; }
+.tabs button { border: 0; background: transparent; padding: 8px 16px; border-radius: 99px; font-weight: 600; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+
+/* ---------- Forms ---------- */
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label, .field .lbl { font-size: 13px; font-weight: 600; }
+.field .hint { font-size: 12px; color: var(--muted); }
+.input, .select, .textarea {
+  width: 100%; min-width: 0;
+  height: 44px; padding: 0 14px;
+  border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+  background: var(--surface); color: var(--fg);
+}
+.textarea { height: auto; min-height: 88px; padding: 12px 14px; resize: vertical; }
+.input:focus, .select:focus, .textarea:focus { outline: 3px solid color-mix(in srgb, var(--green) 40%, transparent); border-color: var(--green); }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.form-grid .full { grid-column: 1 / -1; }
+input[type="range"] { width: 100%; accent-color: var(--green); }
+.switch { position: relative; width: 44px; height: 26px; flex: none; }
+.switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+.switch span { position: absolute; inset: 0; border-radius: 99px; background: var(--line-strong); transition: background 0.15s; }
+.switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.15s; }
+.switch input:checked + span { background: var(--green); }
+.switch input:checked + span::after { transform: translateX(18px); }
+.switch input:focus-visible + span { outline: 3px solid var(--orange); outline-offset: 2px; }
+.drop {
+  display: grid; place-items: center; gap: 6px; text-align: center;
+  padding: 24px; border: 2px dashed var(--line-strong); border-radius: var(--r-md);
+  background: var(--sunken); color: var(--muted);
+}
+.drop.over { border-color: var(--green); background: var(--green-tint); color: var(--green-ink); }
+
+/* ---------- Tables ---------- */
+.table-wrap { overflow-x: auto; margin: 0 -8px; padding: 0 8px; }
+table { width: 100%; border-collapse: collapse; min-width: 560px; }
+th { text-align: left; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); padding: 10px 12px; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+td { padding: 14px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+td.r, th.r { text-align: right; }
+.cell-user { display: flex; align-items: center; gap: 10px; }
+.mini-avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--green-tint); color: var(--green-ink); flex: none; }
+.mini-avatar.o { background: var(--orange-tint); color: var(--orange-ink); }
+.mini-avatar.b { background: var(--blue-tint); color: var(--blue); }
+
+/* ---------- Progress ---------- */
+.bar { height: 10px; border-radius: 99px; background: var(--sunken); position: relative; overflow: visible; }
+.bar > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: var(--green); }
+.bar > i.o { background: var(--orange); }
+.bar > b { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--fg); border-radius: 2px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+/* ---------- Flow lines (process rows) ---------- */
+.flow { display: grid; grid-template-columns: repeat(var(--steps, 4), minmax(0, 1fr)); gap: 0; align-items: stretch; }
+.flow-step { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); margin-right: 40px; }
+.flow-step:last-child { margin-right: 0; }
+.flow-step:not(:last-child)::after {
+  content: ""; position: absolute; top: 50%; left: 100%; width: 40px; height: 3px;
+  background: var(--green); transform: translateY(-50%);
+}
+.flow-step:not(:last-child)::before {
+  content: ""; position: absolute; top: 50%; left: calc(100% + 40px); z-index: 1;
+  border: 6px solid transparent; border-left: 9px solid var(--green);
+  transform: translate(-9px, -50%);
+}
+.flow-step.hot { border: 2px solid var(--orange); }
+.flow-step .n { font-family: var(--display); font-weight: 800; font-size: 13px; letter-spacing: 0.08em; color: var(--faint); }
+.flow-step h3 { font-size: 17px; font-weight: 700; }
+.flow-step p { font-size: 14px; color: var(--muted); }
+
+/* ---------- Home ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 32px; align-items: stretch; }
+.hero-copy { display: flex; flex-direction: column; gap: 24px; justify-content: center; padding: 8px 0; }
+.hero-copy h1 { font-size: clamp(36px, 5vw, 68px); font-weight: 800; line-height: 1.02; letter-spacing: -0.03em; max-width: 14ch; }
+.hero-copy h1 em { font-style: normal; color: var(--green-ink); }
+.hero-copy p.lead { font-size: 18px; color: var(--muted); max-width: 46ch; }
+.ticker { display: flex; flex-direction: column; gap: 0; }
+.ticker-row { display: grid; grid-template-columns: 1fr auto auto; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.ticker-row:last-child { border-bottom: 0; }
+.spark { width: 72px; height: 24px; }
+.role-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.role-card { display: flex; flex-direction: column; gap: 14px; text-align: left; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); padding: 24px; }
+.role-card:hover { border-color: var(--green); box-shadow: var(--shadow); }
+.role-card .go { margin-top: auto; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--green-ink); }
+.band { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; border-radius: var(--r-lg); overflow: hidden; }
+.band > div { padding: 40px; }
+.band .a { background: var(--green); color: var(--on-green); }
+.band .b { background: var(--surface-2); }
+
+/* ---------- Marketplace ---------- */
+.mp { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr) minmax(0, 300px); gap: 20px; align-items: start; }
+.mp-list { display: flex; flex-direction: column; gap: 12px; max-height: 720px; overflow-y: auto; padding: 2px; }
+.listing { text-align: left; display: flex; flex-direction: column; gap: 10px; width: 100%; padding: 16px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); }
+.listing:hover { border-color: var(--green); }
+.listing[aria-pressed="true"] { border: 2px solid var(--green); padding: 15px; box-shadow: var(--shadow); }
+.listing .price { font-family: var(--display); font-weight: 800; font-size: 22px; }
+.listing .price small { font-family: var(--body); font-weight: 500; font-size: 12px; color: var(--muted); }
+.mapbox { position: relative; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--line); background: var(--map-land); min-height: 560px; }
+.mapbox svg { display: block; width: 100%; height: 100%; min-height: 560px; }
+.map-legend { position: absolute; left: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: var(--r-sm); background: var(--surface); border: 1px solid var(--line); font-size: 12px; }
+.map-legend span { display: flex; align-items: center; gap: 8px; }
+.map-legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.map-legend i.sq { border-radius: 3px; }
+.pin { cursor: pointer; }
+.pin:focus-visible { outline: none; }
+.pin:focus-visible circle.ring { stroke: var(--orange); stroke-width: 3; }
+.detail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 84px); display: flex; flex-direction: column; gap: 16px; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; font-size: 14px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-weight: 600; text-align: right; }
+.rating { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: 13px; }
+.rating .icon { color: var(--orange); fill: var(--orange); width: 14px; height: 14px; }
+
+/* ---------- Phone mockup ---------- */
+.phone {
+  width: 300px; max-width: 100%; margin: 0 auto;
+  border-radius: 40px; padding: 12px;
+  background: var(--fg);
+  box-shadow: var(--shadow);
+}
+.phone-screen { border-radius: 30px; background: var(--bg); overflow: hidden; display: flex; flex-direction: column; height: 600px; }
+.phone-status { display: flex; justify-content: space-between; padding: 12px 20px 4px; font-size: 12px; font-weight: 600; }
+.phone-body { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; flex: 1; }
+.phone-nav { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); background: var(--surface); padding: 10px 6px; }
+.phone-nav span { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: var(--faint); }
+.phone-nav span.on { color: var(--green-ink); font-weight: 600; }
+.stop { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font-size: 12px; }
+.stop b { display: block; font-size: 13px; }
+.stop .badge { width: 26px; height: 26px; border-radius: 50%; background: var(--green); color: var(--on-green); display: grid; place-items: center; font-weight: 700; font-size: 12px; flex: none; }
+.stop.next { border: 2px solid var(--orange); }
+.stop.next .badge { background: var(--orange); color: #1B1005; }
+
+/* ---------- Charts ---------- */
+.chart { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--muted); font-family: var(--body); font-size: 12px; }
+.chart .grid-line { stroke: var(--line); stroke-width: 1; }
+.chart .axis { stroke: var(--line-strong); stroke-width: 1; }
+.chart .val { fill: var(--fg); font-weight: 600; }
+.donut-wrap { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; align-items: center; }
+.donut-center { font-family: var(--display); font-weight: 800; }
+
+/* ---------- Chat ---------- */
+.chat { display: grid; grid-template-columns: 300px minmax(0, 1fr) 280px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); overflow: hidden; min-height: 600px; }
+.threads { border-right: 1px solid var(--line); display: flex; flex-direction: column; overflow-y: auto; max-height: 640px; }
+.thread { display: flex; gap: 12px; padding: 14px 16px; border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: left; width: 100%; }
+.thread[aria-current="true"] { background: var(--green-tint); }
+.thread .t-name { font-weight: 600; }
+.thread .t-snip { font-size: 13px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.convo { display: flex; flex-direction: column; min-width: 0; }
+.convo-head { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.msgs { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 20px; overflow-y: auto; max-height: 440px; min-height: 360px; background: var(--sunken); }
+.msg { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 14px; background: var(--surface); border: 1px solid var(--line); align-self: flex-start; }
+.msg.me { align-self: flex-end; background: var(--green); color: var(--on-green); border-color: transparent; }
+.msg time { display: block; font-size: 11px; opacity: 0.7; margin-top: 4px; }
+.composer { display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--line); }
+.deal { border-left: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+/* ---------- Stepper ---------- */
+.stepper { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.stepper li { list-style: none; display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 4px solid var(--line-strong); font-size: 13px; font-weight: 600; color: var(--faint); }
+.stepper li.done { border-color: var(--green); color: var(--green-ink); }
+.stepper li.now { border-color: var(--orange); color: var(--fg); }
+.stepper { margin: 0; padding: 0; }
+.checklist { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.checklist li { display: flex; gap: 12px; align-items: flex-start; }
+.tick { width: 24px; height: 24px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--sunken); color: var(--faint); border: 1px solid var(--line-strong); }
+.tick.ok { background: var(--green); color: var(--on-green); border-color: var(--green); }
+.tick.wait { background: var(--orange-tint); color: var(--orange-ink); border-color: var(--orange); }
+
+/* ---------- Design system ---------- */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+.swatch { border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
+.swatch .chipc { height: 84px; }
+.swatch .meta { padding: 10px 12px; font-size: 12px; }
+.swatch .meta b { display: block; font-size: 13px; }
+.type-row { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.type-row:last-child { border-bottom: 0; }
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 12px; }
+.icon-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 6px; border-radius: var(--r-sm); background: var(--sunken); font-size: 11px; color: var(--muted); }
+.rule-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+/* ---------- Toast + overlay ---------- */
+.toast-host { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 90; display: flex; flex-direction: column; gap: 8px; }
+.toast { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: var(--r-sm); background: var(--fg); color: var(--bg); font-weight: 500; box-shadow: var(--shadow); animation: rise 0.2s ease-out; }
+.toast .icon { color: var(--green); }
+@keyframes rise { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+.overlay { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(18, 23, 24, 0.55); }
+.sheet { width: min(720px, 100%); max-height: 90vh; overflow-y: auto; border-radius: var(--r-lg); background: var(--surface); padding: 28px; box-shadow: var(--shadow); }
+.report-page { border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 24px; background: var(--bg); display: flex; flex-direction: column; gap: 14px; }
+.empty { display: grid; place-items: center; gap: 8px; padding: 32px; text-align: center; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1280px) {
+  .mp { grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); }
+  .mp .detail { grid-column: 1 / -1; position: static; }
+  .chat { grid-template-columns: 260px minmax(0, 1fr); }
+  .chat .deal { display: none; }
+  .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1000px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .rail {
+    position: fixed; z-index: 70; left: 0; top: 0; bottom: 0; width: 280px;
+    transform: translateX(-100%); transition: transform 0.2s ease;
+    box-shadow: var(--shadow);
+  }
+  .rail.open { transform: none; }
+  .menu-btn { display: grid; }
+  .topbar { padding: 12px 16px; }
+  .content { padding: 24px 16px 56px; }
+  .hero, .split-60, .split-40, .band, .g2, .g3 { grid-template-columns: minmax(0, 1fr); }
+  .role-cards { grid-template-columns: minmax(0, 1fr); }
+  .mp { grid-template-columns: minmax(0, 1fr); }
+  .mp-list { max-height: 420px; }
+  .flow { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .flow-step { margin-right: 0; margin-bottom: 40px; }
+  .flow-step:last-child { margin-bottom: 0; }
+  .flow-step:not(:last-child)::after { top: 100%; left: 50%; width: 3px; height: 40px; transform: translateX(-50%); }
+  .flow-step:not(:last-child)::before { top: calc(100% + 40px); left: 50%; border: 6px solid transparent; border-top: 9px solid var(--green); transform: translate(-50%, -9px); }
+  .chat { grid-template-columns: minmax(0, 1fr); }
+  .threads { max-height: 220px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .stepper { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rule-list { grid-template-columns: minmax(0, 1fr); }
+  .band > div { padding: 24px; }
+  .searchbox { display: none; }
+  .role-switch { display: none; }
+}
+@media (max-width: 640px) {
+  .g4 { grid-template-columns: minmax(0, 1fr); }
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .donut-wrap { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .type-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .card { padding: 18px; }
+  .sheet { padding: 20px; }
+}
+
+.sticky-col { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 84px); }
+.kpi .unit { font-size: 0.42em; font-weight: 700; margin-left: 4px; }
+.hh-hero { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 24px; }
+.point { display: flex; gap: 14px; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.point:last-child { border-bottom: 0; }
+@media (max-width: 1000px) { .sticky-col { position: static; } .hh-hero { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h12v10H2z"/><path d="M14 9h4l4 4v3h-8"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
+    <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V5l9-2v18"/><path d="M13 9h7v12"/><path d="M8 8h1M8 12h1M8 16h1M16 13h1M16 17h1"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7h15a3 3 0 013 3v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M3 7l12-4v4"/><circle cx="16.5" cy="14" r="1.2"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-3.5 3.2-5.5 6.5-5.5s6 2 6.5 5.5"/><path d="M16 4.7a3.5 3.5 0 010 6.6M18 14.8c2 .6 3.2 2.4 3.5 5.2"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4"/><path d="M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/></symbol>
+    <symbol id="i-recycle" viewBox="0 0 24 24"><path d="M7 19l-3-5 3-1"/><path d="M4 14h6"/><path d="M17 19h-5l2-4"/><path d="M12 5l3 5-3 1"/><path d="M15 10h5"/><path d="M8 7l2-3h4"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19C5 10 10 5 20 4c0 10-5 15-14 15z"/><path d="M5 19l9-9"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0112 0v6l2 2H4z"/><path d="M10 21h4"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L12 17l-5.4 2.8 1.1-6.1L3.2 9.4l6.1-.8z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M6 20h12"/><path d="M5 7h14"/><path d="M5 7l-3 7a3 3 0 006 0zM19 7l-3 7a3 3 0 006 0z"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 8v6l-4-2v-4z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M5 15l7-7 7 7"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3L3 11l7 3 3 7z"/><path d="M10 14l11-11"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app">
+  <aside class="rail" id="rail" aria-label="Main">
+    <a class="brand" href="#home" data-go="home">
+      <img class="brand-mark" alt="" src="data:image/png;base64,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" style="object-fit:contain">
+      <span><span class="brand-name">CIRCULINK</span><br><span class="brand-sub">TUNA TAKA</span></span>
+    </a>
+    <nav class="nav" aria-label="Sections">
+      <div class="nav-label">Platform</div>
+      <button data-go="home"><svg class="icon"><use href="#i-home"/></svg>Overview</button>
+      <button data-go="marketplace"><svg class="icon"><use href="#i-map"/></svg>Marketplace</button>
+      <button data-go="messages"><svg class="icon"><use href="#i-chat"/></svg>Messages<span class="count" id="msg-count">3</span></button>
+      <button data-go="transactions"><svg class="icon"><use href="#i-wallet"/></svg>Payments</button>
+    </nav>
+    <nav class="nav" aria-label="Workspaces">
+      <div class="nav-label">Workspaces</div>
+      <button data-go="household"><svg class="icon"><use href="#i-home"/></svg>Household</button>
+      <button data-go="collector"><svg class="icon"><use href="#i-truck"/></svg>Collector</button>
+      <button data-go="buyer"><svg class="icon"><use href="#i-building"/></svg>Buyer</button>
+      <button data-go="compliance"><svg class="icon"><use href="#i-shield"/></svg>EPR compliance</button>
+    </nav>
+    <nav class="nav" aria-label="Operations">
+      <div class="nav-label">Operations</div>
+      <button data-go="verification"><svg class="icon"><use href="#i-check"/></svg>Verification</button>
+      <button data-go="admin"><svg class="icon"><use href="#i-grid"/></svg>Admin</button>
+      <button data-go="system"><svg class="icon"><use href="#i-leaf"/></svg>Design system</button>
+    </nav>
+    <div class="rail-foot">
+      <p class="sample-note">Prototype. Every name, price, weight and status shown is sample data.</p>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menu-btn" aria-label="Open menu" aria-expanded="false"><svg class="icon"><use href="#i-menu"/></svg></button>
+      <label class="searchbox"><svg class="icon sm"><use href="#i-search"/></svg><span class="sr">Search</span><input id="global-search" type="search" placeholder="Search material, collector or buyer"></label>
+      <div class="top-actions">
+        <div class="role-switch" role="group" aria-label="Viewing as">
+          <button data-role="collector" aria-pressed="false">Collector</button>
+          <button data-role="buyer" aria-pressed="true">Buyer</button>
+          <button data-role="admin" aria-pressed="false">Admin</button>
+        </div>
+        <button class="icon-btn" id="theme-btn" aria-label="Switch theme"><svg class="icon"><use href="#i-moon"/></svg></button>
+        <button class="icon-btn" id="bell-btn" aria-label="Notifications"><svg class="icon"><use href="#i-bell"/></svg><span class="dot"></span></button>
+        <span class="avatar" id="who" title="Signed in">JM</span>
+      </div>
+    </header>
+
+    <main class="content" id="content">
+
+<!-- ================= HOME ================= -->
+<section class="view" data-view="home" aria-labelledby="home-h">
+  <div class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Plastic, paper and metal, traced from street to factory</span>
+      <h1 id="home-h">Turn waste into <em>verified</em> raw material.</h1>
+      <p class="lead">Circulink matches collectors, households and manufacturers on one marketplace, and records every kilogram for EPR reporting.</p>
+      <div class="row">
+        <button class="btn primary" data-go="marketplace">Open the marketplace <svg class="icon sm"><use href="#i-arrow"/></svg></button>
+        <button class="btn ghost" data-go="compliance">See the compliance dashboard</button>
+      </div>
+    </div>
+    <div class="card lift">
+      <div class="card-head">
+        <div>
+          <h2 class="h3">Today's buying prices</h2>
+          <p class="small muted">KES per kg, Nairobi. Sample data.</p>
+        </div>
+        <span class="pill ok"><svg class="icon"><use href="#i-clock"/></svg>Updated 08:00</span>
+      </div>
+      <div class="ticker" id="home-ticker"></div>
+    </div>
+  </div>
+
+  <div class="grid g3" style="margin-top:32px">
+    <div class="card tint kpi">
+      <span class="label">Verified collectors (sample)</span>
+      <span class="num-lg c-green" id="home-k1">124</span>
+      <span class="small muted">Across 9 Nairobi neighbourhoods</span>
+    </div>
+    <div class="card flag kpi">
+      <span class="label">Material traded this week (sample)</span>
+      <span class="num-lg c-orange" id="home-k2">2,480<span style="font-size:0.45em"> kg</span></span>
+      <span class="small muted">PET, HDPE, PP, paper and metal</span>
+    </div>
+    <div class="card sand kpi">
+      <span class="label">Audit-ready batches (sample)</span>
+      <span class="num-lg" id="home-k3">96<span style="font-size:0.5em">%</span></span>
+      <span class="small muted">Weigh slip, source and buyer recorded</span>
+    </div>
+  </div>
+
+  <div style="margin-top:48px" class="stack lg">
+    <div>
+      <span class="eyebrow">How a trade works</span>
+      <h2 class="h2" style="margin-top:8px">Four steps from collection to compliance record</h2>
+    </div>
+    <div class="flow" style="--steps:4">
+      <div class="flow-step">
+        <span class="n">STEP 1</span>
+        <div class="icon-chip"><svg class="icon"><use href="#i-pin"/></svg></div>
+        <h3>List</h3>
+        <p>A collector or household posts material, weight and location.</p>
+      </div>
+      <div class="flow-step">
+        <span class="n">STEP 2</span>
+        <div class="icon-chip"><svg class="icon"><use href="#i-search"/></svg></div>
+        <h3>Match</h3>
+        <p>Verified buyers within range see the listing and make an offer.</p>
+      </div>
+      <div class="flow-step hot">
+        <span class="n">STEP 3</span>
+        <div class="icon-chip orange"><svg class="icon"><use href="#i-scale"/></svg></div>
+        <h3>Weigh and pay</h3>
+        <p>Weight is confirmed at pickup. Payment is released through escrow.</p>
+      </div>
+      <div class="flow-step">
+        <span class="n">STEP 4</span>
+        <div class="icon-chip"><svg class="icon"><use href="#i-doc"/></svg></div>
+        <h3>Record</h3>
+        <p>The batch lands in the buyer's EPR audit trail automatically.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:48px" class="stack lg">
+    <div>
+      <span class="eyebrow">Start here</span>
+      <h2 class="h2" style="margin-top:8px">Pick your workspace</h2>
+    </div>
+    <div class="role-cards">
+      <button class="role-card" data-go="collector">
+        <div class="icon-chip solid"><svg class="icon"><use href="#i-truck"/></svg></div>
+        <h3 class="h3">I collect waste</h3>
+        <p class="muted">Post material, plan pickups and get paid to M-Pesa.</p>
+        <span class="go">Collector workspace <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+      </button>
+      <button class="role-card" data-go="buyer">
+        <div class="icon-chip solid"><svg class="icon"><use href="#i-building"/></svg></div>
+        <h3 class="h3">I buy recycled material</h3>
+        <p class="muted">Post demand, compare suppliers and secure steady volume.</p>
+        <span class="go">Buyer workspace <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+      </button>
+      <button class="role-card" data-go="compliance">
+        <div class="icon-chip solid"><svg class="icon"><use href="#i-shield"/></svg></div>
+        <h3 class="h3">I report under EPR</h3>
+        <p class="muted">Track targets, trace batches and prepare audit packs.</p>
+        <span class="go">Compliance dashboard <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="band" style="margin-top:48px">
+    <div class="a stack">
+      <span class="eyebrow" style="color:inherit;opacity:.85">The model</span>
+      <h2 class="h2" style="font-size:30px">Tuna takataka, tunataka taka.</h2>
+      <p style="opacity:.9">You have waste, we want waste. One simple exchange, recorded end to end.</p>
+    </div>
+    <div class="b stack">
+      <span class="eyebrow">Revenue</span>
+      <div class="row" style="gap:32px;align-items:flex-end">
+        <div><div class="num-lg c-orange">5–10%</div><p class="small muted">Trade commission, paid by buyers</p></div>
+        <div><div class="num-lg">Monthly</div><p class="small muted">Compliance dashboard subscription</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MARKETPLACE ================= -->
+<section class="view" data-view="marketplace" aria-labelledby="mp-h" hidden>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Marketplace</span>
+      <h1 id="mp-h">Find material near you</h1>
+      <p>Browse live listings from verified collectors, or switch to buyer demand. Sample data.</p>
+    </div>
+    <div class="row">
+      <div class="tabs" role="tablist" aria-label="Side of the market">
+        <button role="tab" id="mp-tab-supply" aria-selected="true" data-mp-mode="supply">Collectors (<span id="mp-n-supply">0</span>)</button>
+        <button role="tab" id="mp-tab-demand" aria-selected="false" data-mp-mode="demand">Buyers (<span id="mp-n-demand">0</span>)</button>
+      </div>
+      <button class="btn primary" data-go="collector">New listing</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div class="row between" style="gap:20px;align-items:flex-end">
+      <div class="field">
+        <span class="lbl">Material</span>
+        <div class="chips" id="mp-materials"></div>
+      </div>
+      <div class="field" style="min-width:200px;flex:0 1 240px">
+        <label for="mp-radius">Within <b id="mp-radius-v">8</b> km of Nairobi CBD</label>
+        <input id="mp-radius" type="range" min="2" max="20" value="8">
+      </div>
+      <div class="field" style="flex:0 0 180px">
+        <label for="mp-sort">Sort by</label>
+        <select class="select" id="mp-sort">
+          <option value="near">Nearest</option>
+          <option value="price">Price per kg</option>
+          <option value="qty">Quantity</option>
+          <option value="rating">Rating</option>
+        </select>
+      </div>
+      <label class="row" style="gap:10px;flex:0 0 auto">
+        <span class="switch"><input type="checkbox" id="mp-verified" checked><span></span></span>
+        <span class="small" style="font-weight:600">Verified only</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="mp">
+    <div class="mp-list" id="mp-list" aria-live="polite"></div>
+    <div class="mapbox"><svg id="mp-map" viewBox="240 150 360 490" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Map of Nairobi with collectors and buyers"></svg>
+      <div class="map-legend">
+        <span><i style="background:var(--green)"></i>Collector</span>
+        <span><i class="sq" style="background:var(--blue)"></i>Buyer</span>
+        <span><i style="background:var(--orange)"></i>Selected</span>
+      </div>
+    </div>
+    <aside class="detail card lift" id="mp-detail" aria-live="polite"></aside>
+  </div>
+</section>
+
+<!-- ================= COLLECTOR ================= -->
+<section class="view" data-view="collector" aria-labelledby="col-h" hidden>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Collector workspace</span>
+      <h1 id="col-h">Good morning, Peter</h1>
+      <p>Post what you have, see who is buying, and track payouts to M-Pesa. Sample data.</p>
+    </div>
+    <div class="row">
+      <span class="pill ok"><svg class="icon"><use href="#i-shield"/></svg>Verified collector</span>
+      <button class="btn primary" id="col-new-btn"><svg class="icon sm"><use href="#i-plus"/></svg>New listing</button>
+    </div>
+  </div>
+
+  <div class="grid split-40" style="align-items:start">
+    <div class="stack lg sticky-col">
+      <div class="phone" aria-label="Collector mobile app preview">
+        <div class="phone-screen">
+          <div class="phone-status"><span>09:41</span><span>4G</span></div>
+          <div class="phone-body">
+            <div class="row between">
+              <div>
+                <div class="tiny muted">Today's earnings</div>
+                <div class="num-md c-green">KES 3,940</div>
+              </div>
+              <span class="mini-avatar">PK</span>
+            </div>
+            <div class="card tint" style="padding:12px;border-radius:14px">
+              <div class="tiny muted">Route, 5 stops, 38 km</div>
+              <div class="bar" style="margin-top:8px"><i style="width:40%"></i></div>
+              <div class="tiny" style="margin-top:6px"><b>2 of 5</b> complete</div>
+            </div>
+            <div class="stop"><span class="badge"><svg class="icon sm"><use href="#i-check"/></svg></span><div><b>Kibera Drive</b>PET 64 kg, paid</div></div>
+            <div class="stop"><span class="badge"><svg class="icon sm"><use href="#i-check"/></svg></span><div><b>Lang'ata Rd</b>HDPE 41 kg, paid</div></div>
+            <div class="stop next"><span class="badge">3</span><div><b>Eastleigh, 12th St</b>PET 120 kg, 11:30</div></div>
+            <div class="stop"><span class="badge" style="background:var(--sunken);color:var(--muted)">4</span><div><b>Mathare North</b>Cardboard 85 kg, 13:00</div></div>
+          </div>
+          <div class="phone-nav">
+            <span class="on"><svg class="icon sm"><use href="#i-home"/></svg>Today</span>
+            <span><svg class="icon sm"><use href="#i-map"/></svg>Route</span>
+            <span><svg class="icon sm"><use href="#i-wallet"/></svg>Wallet</span>
+            <span><svg class="icon sm"><use href="#i-chat"/></svg>Chat</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack lg">
+      <div class="grid g3">
+        <div class="card tint kpi">
+          <span class="label">This week, KES</span>
+          <span class="num-lg c-green">18.4k</span>
+          <span class="delta up"><svg class="icon sm"><use href="#i-up"/></svg>12% on last week</span>
+        </div>
+        <div class="card kpi">
+          <span class="label">Collected</span>
+          <span class="num-lg">612<span style="font-size:.45em"> kg</span></span>
+          <span class="delta up"><svg class="icon sm"><use href="#i-up"/></svg>74 kg</span>
+        </div>
+        <div class="card flag kpi">
+          <span class="label">Pending payout, KES</span>
+          <span class="num-lg c-orange">2.1k</span>
+          <span class="small muted">Releases after weigh-in</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="h3">Earnings by day</h2>
+          <div class="legend"><span><i style="background:var(--green)"></i>Paid</span><span><i style="background:var(--orange)"></i>Pending</span></div>
+        </div>
+        <div id="col-chart"></div>
+      </div>
+
+      <div class="card" id="col-form-card">
+        <div class="card-head">
+          <h2 class="h3">Post a listing</h2>
+          <span class="pill info">Visible to verified buyers</span>
+        </div>
+        <form id="col-form" class="form-grid" novalidate>
+          <div class="field">
+            <label for="cf-material">Material</label>
+            <select class="select" id="cf-material"></select>
+          </div>
+          <div class="field">
+            <label for="cf-grade">Condition</label>
+            <select class="select" id="cf-grade">
+              <option>Clean and sorted</option>
+              <option>Washed, mixed colours</option>
+              <option>Unwashed</option>
+              <option>Baled</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cf-qty">Quantity (kg)</label>
+            <input class="input" id="cf-qty" type="number" min="10" step="5" value="120" inputmode="numeric">
+            <span class="hint">Minimum 10 kg</span>
+          </div>
+          <div class="field">
+            <label for="cf-price">Asking price (KES per kg)</label>
+            <input class="input" id="cf-price" type="number" min="1" step="0.5" value="32" inputmode="decimal">
+            <span class="hint" id="cf-hint">Market range 28 to 36 for PET</span>
+          </div>
+          <div class="field">
+            <label for="cf-area">Pickup area</label>
+            <select class="select" id="cf-area"></select>
+          </div>
+          <div class="field">
+            <label for="cf-when">Ready from</label>
+            <select class="select" id="cf-when">
+              <option>Today</option>
+              <option>Tomorrow</option>
+              <option>This weekend</option>
+              <option>Next week</option>
+            </select>
+          </div>
+          <div class="field full">
+            <span class="lbl">Photos</span>
+            <label class="drop" id="cf-drop" for="cf-files">
+              <svg class="icon lg"><use href="#i-upload"/></svg>
+              <span><b>Drop photos here</b> or tap to choose</span>
+              <span class="tiny" id="cf-files-n">No photos added</span>
+            </label>
+            <input class="sr" id="cf-files" type="file" accept="image/*" multiple>
+          </div>
+          <div class="full card sand row between" style="padding:16px">
+            <div>
+              <div class="tiny muted">Estimated value</div>
+              <div class="num-md" id="cf-total">KES 3,840</div>
+            </div>
+            <button class="btn primary" type="submit">Publish listing</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="h3">Pickups this week</h2>
+          <button class="btn ghost sm" data-go="messages">Message buyers</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Buyer</th><th>Material</th><th class="r">kg</th><th>Slot</th><th>Status</th></tr></thead>
+            <tbody id="col-pickups"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BUYER ================= -->
+<section class="view" data-view="buyer" aria-labelledby="buy-h" hidden>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Buyer workspace</span>
+      <h1 id="buy-h">Secure steady volume</h1>
+      <p>Post what your line needs, compare suppliers and watch prices. Sample data for a mid-size beverage manufacturer.</p>
+    </div>
+    <div class="row">
+      <span class="pill ok"><svg class="icon"><use href="#i-shield"/></svg>Verified buyer</span>
+      <button class="btn primary" id="buy-new-btn"><svg class="icon sm"><use href="#i-plus"/></svg>Post demand</button>
+    </div>
+  </div>
+
+  <div class="grid g4" style="margin-bottom:24px">
+    <div class="card tint kpi"><span class="label">Contracted this month</span><span class="num-lg c-green">18.6<span style="font-size:.45em"> t</span></span><span class="delta up"><svg class="icon sm"><use href="#i-up"/></svg>9% on last month</span></div>
+    <div class="card kpi"><span class="label">Average buy price</span><span class="num-lg">31.4</span><span class="small muted">KES per kg, PET</span></div>
+    <div class="card kpi"><span class="label">Active suppliers</span><span class="num-lg">27</span><span class="small muted">24 verified, 3 in review</span></div>
+    <div class="card flag kpi"><span class="label">Open demand posts</span><span class="num-lg c-orange" id="buy-open-n">3</span><span class="small muted">Offers waiting on 2</span></div>
+  </div>
+
+  <div class="grid split-60" style="align-items:start">
+    <div class="stack lg">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2 class="h3">Price index, last 12 weeks</h2>
+            <p class="small muted">KES per kg, delivered Nairobi. Sample data.</p>
+          </div>
+          <div class="chips" id="buy-index-chips"></div>
+        </div>
+        <div id="buy-index"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="h3">Your demand posts</h2>
+          <span class="small muted">Suppliers respond with offers</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Material</th><th class="r">Volume</th><th class="r">Ceiling</th><th>Offers</th><th>Status</th></tr></thead>
+            <tbody id="buy-demand"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="h3">Supplier scorecard</h2>
+          <div class="tabs" role="tablist" aria-label="Sort suppliers">
+            <button role="tab" aria-selected="true" data-sup="reliability">Reliability</button>
+            <button role="tab" aria-selected="false" data-sup="quality">Quality</button>
+            <button role="tab" aria-selected="false" data-sup="volume">Volume</button>
+          </div>
+        </div>
+        <div id="buy-suppliers" class="stack"></div>
+      </div>
+    </div>
+
+    <div class="stack lg">
+      <div class="card" id="buy-form-card">
+        <div class="card-head">
+          <h2 class="h3">Post demand</h2>
+          <span class="pill info">Matched to verified collectors</span>
+        </div>
+        <form id="buy-form" class="form-grid" novalidate>
+          <div class="field">
+            <label for="bf-material">Material</label>
+            <select class="select" id="bf-material"></select>
+          </div>
+          <div class="field">
+            <label for="bf-spec">Specification</label>
+            <select class="select" id="bf-spec">
+              <option>Food grade, clear</option>
+              <option>Mixed colour, washed</option>
+              <option>Baled, any grade</option>
+              <option>Flake or pellet</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="bf-vol">Volume per month (kg)</label>
+            <input class="input" id="bf-vol" type="number" min="100" step="100" value="2000" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="bf-price">Price ceiling (KES per kg)</label>
+            <input class="input" id="bf-price" type="number" min="1" step="0.5" value="36" inputmode="decimal">
+          </div>
+          <div class="field full">
+            <label for="bf-site">Delivery site</label>
+            <select class="select" id="bf-site">
+              <option>Industrial Area, Nairobi</option>
+              <option>Embakasi, Nairobi</option>
+              <option>Ruaraka, Nairobi</option>
+              <option>Athi River</option>
+            </select>
+          </div>
+          <label class="full row" style="gap:12px;align-items:flex-start">
+            <span class="switch"><input type="checkbox" id="bf-epr" checked><span></span></span>
+            <span class="small"><b>Count towards my EPR target.</b> Batches from this post are added to the audit trail.</span>
+          </label>
+          <div class="full row between">
+            <span class="small muted" id="bf-est">Commission at 7.5%: KES 5,400 per month</span>
+            <button class="btn primary" type="submit">Publish demand</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card sand">
+        <div class="card-head"><h2 class="h3">Incoming deliveries</h2></div>
+        <ul class="checklist" id="buy-deliveries"></ul>
+      </div>
+
+      <div class="card tint">
+        <div class="row" style="align-items:flex-start;gap:16px">
+          <div class="icon-chip solid"><svg class="icon"><use href="#i-shield"/></svg></div>
+          <div class="stack sm">
+            <h3 class="h3">Every supplier is checked</h3>
+            <p class="small muted">Identity, location and licence are reviewed before a collector can reach your demand posts.</p>
+            <button class="btn ghost sm" style="align-self:flex-start" data-go="verification">How verification works</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= COMPLIANCE ================= -->
+<section class="view" data-view="compliance" aria-labelledby="cmp-h" hidden>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">EPR compliance dashboard</span>
+      <h1 id="cmp-h">Audit-ready, every batch</h1>
+      <p>Track your collection obligation, trace each batch to its source and prepare the pack your regulator asks for. Sample data.</p>
+    </div>
+    <div class="row">
+      <div class="field" style="min-width:150px">
+        <label for="cmp-period" class="sr">Reporting period</label>
+        <select class="select" id="cmp-period">
+          <option value="year">FY 2026 to date</option>
+          <option value="q3">Q3 2026</option>
+          <option value="q2">Q2 2026</option>
+        </select>
+      </div>
+      <button class="btn primary" id="cmp-pack-btn"><svg class="icon sm"><use href="#i-doc"/></svg>Prepare audit pack</button>
+    </div>
+  </div>
+
+  <div class="grid split-60" style="margin-bottom:24px">
+    <div class="card solid stack lg">
+      <div class="row between">
+        <span class="eyebrow" style="color:inherit;opacity:.85">Collection obligation met</span>
+        <span class="pill" style="background:rgba(255,255,255,.18);color:inherit" id="cmp-days">23 days left in period</span>
+      </div>
+      <div class="num-xl" id="cmp-pct">72<span style="font-size:.5em">%</span></div>
+      <div>
+        <div class="bar" style="background:rgba(255,255,255,.25);height:14px"><i id="cmp-bar" style="width:72%;background:var(--bg)"></i></div>
+        <div class="row between small" style="margin-top:10px;opacity:.9"><span id="cmp-have">86.4 t collected</span><span id="cmp-need">Target 120 t</span></div>
+      </div>
+    </div>
+    <div class="grid" style="grid-template-rows:1fr 1fr">
+      <div class="card flag row" style="gap:20px;flex-wrap:nowrap">
+        <div class="icon-chip orange"><svg class="icon"><use href="#i-flag"/></svg></div>
+        <div class="grow">
+          <div class="num-md c-orange" id="cmp-gap">33.6 t</div>
+          <p class="small muted">Still to collect. At the current pace you will miss the target by about 6 t.</p>
+        </div>
+      </div>
+      <div class="card tint row" style="gap:20px;flex-wrap:nowrap">
+        <div class="icon-chip solid"><svg class="icon"><use href="#i-check"/></svg></div>
+        <div class="grow">
+          <div class="num-md c-green" id="cmp-ready">96%</div>
+          <p class="small muted">Batches with weigh slip, source and buyer on record.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-head">
+        <h2 class="h3">Obligation by material</h2>
+        <div class="legend"><span><i style="background:var(--green)"></i>Collected</span><span><i style="background:var(--fg)"></i>Target</span></div>
+      </div>
+      <div class="stack" id="cmp-materials"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2 class="h3">Where it came from</h2><span class="small muted">By source type</span></div>
+      <div class="donut-wrap">
+        <div id="cmp-donut"></div>
+        <div class="stack sm" id="cmp-donut-legend"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid split-60" style="margin-bottom:24px;align-items:start">
+    <div class="card">
+      <div class="card-head">
+        <h2 class="h3">Monthly collection against pace</h2>
+        <div class="legend"><span><i style="background:var(--green)"></i>Collected</span><span><i style="background:var(--orange)"></i>Required pace</span></div>
+      </div>
+      <div id="cmp-trend"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2 class="h3">Registrations</h2></div>
+      <ul class="checklist" id="cmp-regs"></ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2 class="h3">Batch trail</h2>
+        <p class="small muted">Each row links a weigh slip to its collector and buyer.</p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Filter batches">
+        <button role="tab" aria-selected="true" data-batch="all">All</button>
+        <button role="tab" aria-selected="false" data-batch="ready">Audit-ready</button>
+        <button role="tab" aria-selected="false" data-batch="gap">Needs attention</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Batch</th><th>Date</th><th>Material</th><th class="r">kg</th><th>Source</th><th>Record</th></tr></thead>
+        <tbody id="cmp-batches"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HOUSEHOLD ================= -->
+<section class="view" data-view="household" aria-labelledby="hh-h" hidden>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Household</span>
+      <h1 id="hh-h">Your recycling, collected and paid for</h1>
+      <p>Request a pickup, find a drop-off point and see what your sorted waste earned. Sample data.</p>
+    </div>
+    <span class="pill ok"><svg class="icon"><use href="#i-pin"/></svg>South B, Nairobi</span>
+  </div>
+
+  <div class="hh-hero" style="margin-bottom:24px">
+    <div class="card solid stack lg">
+      <span class="eyebrow" style="color:inherit;opacity:.85">Recycled with Circulink this year</span>
+      <div class="num-xl">186<span style="font-size:.4em;margin-left:8px">kg</span></div>
+      <div class="row" style="gap:32px">
+        <div><div class="num-md">KES 4,310</div><div class="small" style="opacity:.85">Earned</div></div>
+        <div><div class="num-md">23</div><div class="small" style="opacity:.85">Pickups</div></div>
+        <div><div class="num-md">4.9</div><div class="small" style="opacity:.85">Collector rating</div></div>
+      </div>
+    </div>
+    <div class="card flag">
+      <div class="card-head"><h2 class="h3">Next pickup</h2><span class="pill warn">Confirmed</span></div>
+      <div class="num-md c-orange">Thu, 09:00 to 11:00</div>
+      <p class="small muted" style="margin:8px 0 16px">James Otieno collects 3 bags of PET and paper from your gate.</p>
+      <div class="row"><button class="btn ghost sm" data-go="messages">Message collector</button><button class="btn ghost sm" id="hh-resched">Change time</button></div>
+    </div>
+  </div>
+
+  <div class="grid split-60" style="align-items:start">
+    <div class="stack lg">
+      <div class="card">
+        <div class="card-head"><h2 class="h3">Request a pickup</h2><span class="pill info">Matched to a verified collector</span></div>
+        <form id="hh-form" class="form-grid" novalidate>
+          <div class="field full">
+            <span class="lbl">What is in the bags</span>
+            <div class="chips" id="hh-mats"></div>
+          </div>
+          <div class="field">
+            <label for="hh-bags">Number of bags</label>
+            <input class="input" id="hh-bags" type="number" min="1" max="20" value="3" inputmode="numeric">
+            <span class="hint">About 5 kg per full bag</span>
+          </div>
+          <div class="field">
+            <label for="hh-area">Pickup area</label>
+            <select class="select" id="hh-area"></select>
+          </div>
+          <div class="field">
+            <label for="hh-date">Day</label>
+            <select class="select" id="hh-date">
+              <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Next Monday</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="hh-win">Time window</label>
+            <select class="select" id="hh-win">
+              <option>09:00 to 11:00</option><option>11:00 to 13:00</option><option>14:00 to 16:00</option>
+            </select>
+          </div>
+          <div class="full card sand row between" style="padding:16px">
+            <div><div class="tiny muted">Estimated payout</div><div class="num-md" id="hh-est">KES 330</div></div>
+            <button class="btn primary" type="submit">Request pickup</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2 class="h3">Pickup history</h2></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Material</th><th class="r">kg</th><th class="r">Earned (KES)</th><th>Status</th></tr></thead>
+            <tbody id="hh-history"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack lg">
+      <div class="card">
+        <div class="card-head"><h2 class="h3">Kilograms per month</h2></div>
+        <div id="hh-chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2 class="h3">Drop-off points near you</h2><button class="btn ghost sm" data-go="marketplace">See on map</button></div>
+        <div id="hh-points"></div>
+      </div>
+      <div class="card tint">
+        <div class="card-head"><h2 class="h3">Get a better price</h2></div>
+        <div class="stack sm">
+          <div class="point"><span class="tick ok"><svg class="icon sm"><use href="#i-check"/></svg></span><span><b>Rinse bottles and remove caps.</b> Clean PET sells higher.</span></div>
+          <div class="point"><span class="tick ok"><svg class="icon sm"><use href="#i-check"/></svg></span><span><b>Keep paper dry.</b> Wet card is refused.</span></div>
+          <div class="point"><span class="tick ok"><svg class="icon sm"><use href="#i-check"/></svg></span><span><b>Separate by material.</b> Mixed bags pay less.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PAYMENTS ================= -->
+<section class="view" data-view="transactions" aria-labelledby="tx-h" hidden>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Payments and escrow</span>
+      <h1 id="tx-h">Paid when the weight is confirmed</h1>
+      <p>Buyers fund escrow, collectors are paid to M-Pesa after the weigh-in, and the commission is taken once. Sample data.</p>
+    </div>
+    <div class="row">
+      <div class="tabs" role="tablist" aria-label="Filter payments">
+        <button role="tab" aria-selected="true" data-tx="all">All</button>
+        <button role="tab" aria-selected="false" data-tx="escrow">In escrow</button>
+        <button role="tab" aria-selected="false" data-tx="paid">Paid</button>
+        <button role="tab" aria-selected="false" data-tx="dispute">Disputed</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-head"><h2 class="h3">Where the money moves</h2><span class="small muted">One trade, left to right</span></div>
+    <div class="flow" style="--steps:4">
+      <div class="flow-step">
+        <span class="n">BUYER</span>
+        <div class="icon-chip blue"><svg class="icon"><use href="#i-building"/></svg></div>
+        <h3>Funds escrow</h3>
+        <p>Agreed price times quantity, plus commission.</p>
+      </div>
+      <div class="flow-step">
+        <span class="n">PICKUP</span>
+        <div class="icon-chip"><svg class="icon"><use href="#i-scale"/></svg></div>
+        <h3>Weight confirmed</h3>
+        <p>Both sides sign off the weigh slip.</p>
+      </div>
+      <div class="flow-step hot">
+        <span class="n">RELEASE</span>
+        <div class="icon-chip orange"><svg class="icon"><use href="#i-wallet"/></svg></div>
+        <h3>Collector paid</h3>
+        <p>M-Pesa payout within minutes of sign-off.</p>
+      </div>
+      <div class="flow-step">
+        <span class="n">RECORD</span>
+        <div class="icon-chip"><svg class="icon"><use href="#i-doc"/></svg></div>
+        <h3>Batch logged</h3>
+        <p>Added to the buyer's EPR audit trail.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid split-60" style="align-items:start">
+    <div class="card">
+      <div class="card-head"><h2 class="h3">Recent payments</h2><span class="small muted" id="tx-count"></span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Reference</th><th>Parties</th><th class="r">Amount (KES)</th><th class="r">Fee</th><th>Status</th></tr></thead>
+          <tbody id="tx-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stack lg">
+      <div class="card flag">
+        <div class="card-head"><h2 class="h3">Commission calculator</h2></div>
+        <div class="stack">
+          <div class="field">
+            <label for="tx-vol">Monthly volume bought: <b id="tx-vol-v">20</b> t</label>
+            <input id="tx-vol" type="range" min="1" max="100" value="20">
+          </div>
+          <div class="field">
+            <label for="tx-price">Average price: <b id="tx-price-v">32</b> KES per kg</label>
+            <input id="tx-price" type="range" min="15" max="80" value="32">
+          </div>
+          <div class="field">
+            <label for="tx-rate">Commission: <b id="tx-rate-v">7.5</b>%</label>
+            <input id="tx-rate" type="range" min="5" max="10" step="0.5" value="7.5">
+          </div>
+          <div class="grid g2" style="gap:12px">
+            <div class="card sand" style="padding:16px"><div class="tiny muted">Trade value</div><div class="num-md" id="tx-gmv">KES 640k</div></div>
+            <div class="card tint" style="padding:16px"><div class="tiny muted">Commission</div><div class="num-md c-green" id="tx-fee">KES 48k</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2 class="h3">Dashboard subscription</h2><span class="pill warn">Example pricing</span></div>
+        <div class="stack">
+          <div class="row between"><div><b>Starter</b><div class="small muted">1 site, monthly report</div></div><b>KES 15,000</b></div>
+          <div class="row between"><div><b>Growth</b><div class="small muted">Up to 5 sites, live audit trail</div></div><b>KES 45,000</b></div>
+          <div class="row between"><div><b>Enterprise</b><div class="small muted">Unlimited sites, API access</div></div><b>Talk to us</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MESSAGES ================= -->
+<section class="view" data-view="messages" aria-labelledby="msg-h" hidden>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Messages</span>
+      <h1 id="msg-h">Agree the details in one place</h1>
+      <p>Chats stay attached to the listing, so price, weight and pickup time are on the record.</p>
+    </div>
+  </div>
+  <div class="chat">
+    <div class="threads" id="threads" role="list"></div>
+    <div class="convo">
+      <div class="convo-head" id="convo-head"></div>
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <form class="composer" id="composer">
+        <label class="sr" for="msg-input">Message</label>
+        <input class="input" id="msg-input" placeholder="Write a message" autocomplete="off">
+        <button class="btn primary" type="submit"><svg class="icon sm"><use href="#i-send"/></svg>Send</button>
+      </form>
+    </div>
+    <aside class="deal" id="deal"></aside>
+  </div>
+</section>
+
+<!-- ================= VERIFICATION ================= -->
+<section class="view" data-view="verification" aria-labelledby="ver-h" hidden>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Verification</span>
+      <h1 id="ver-h">Only checked accounts can trade</h1>
+      <p>Collectors confirm identity and location. Buyers and recyclers also add their licence. Reviews take one to two working days.</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Account type">
+      <button role="tab" aria-selected="true" data-ver="collector">Collector</button>
+      <button role="tab" aria-selected="false" data-ver="buyer">Buyer or recycler</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px">
+    <ol class="stepper" id="ver-steps"></ol>
+  </div>
+
+  <div class="grid split-60" style="align-items:start">
+    <div class="card">
+      <div class="card-head"><h2 class="h3" id="ver-title">Your details</h2><span class="pill warn" id="ver-state">In progress</span></div>
+      <form id="ver-form" class="form-grid" novalidate>
+        <div class="field">
+          <label for="vf-name">Full name or business name</label>
+          <input class="input" id="vf-name" value="Peter Kamau" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="vf-phone">M-Pesa number</label>
+          <input class="input" id="vf-phone" value="07•• ••• 482" inputmode="tel">
+          <span class="hint">Payouts are sent here</span>
+        </div>
+        <div class="field">
+          <label for="vf-id">National ID or registration number</label>
+          <input class="input" id="vf-id" placeholder="Enter number" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="vf-pin">KRA PIN</label>
+          <input class="input" id="vf-pin" placeholder="A000000000X">
+        </div>
+        <div class="field" id="vf-nema-field" hidden>
+          <label for="vf-nema">NEMA licence number</label>
+          <input class="input" id="vf-nema" placeholder="Enter licence number">
+          <span class="hint">Required for recyclers and processors</span>
+        </div>
+        <div class="field">
+          <label for="vf-area">Operating area</label>
+          <select class="select" id="vf-area"></select>
+        </div>
+        <div class="field full">
+          <span class="lbl">Documents</span>
+          <label class="drop" id="vf-drop" for="vf-files">
+            <svg class="icon lg"><use href="#i-upload"/></svg>
+            <span><b>Drop documents here</b> or tap to choose</span>
+            <span class="tiny">ID front and back, a photo of your collection point</span>
+          </label>
+          <input class="sr" id="vf-files" type="file" multiple accept="image/*,.pdf">
+          <ul class="checklist" id="vf-list" style="margin-top:8px"></ul>
+        </div>
+        <div class="full row between">
+          <span class="small muted">Documents are used for review only and are not shown to other users.</span>
+          <button class="btn primary" type="submit">Submit for review</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="stack lg">
+      <div class="card tint">
+        <div class="card-head"><h2 class="h3">What reviewers check</h2></div>
+        <ul class="checklist" id="ver-checks"></ul>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2 class="h3">What a verified badge unlocks</h2></div>
+        <ul class="checklist">
+          <li><span class="tick ok"><svg class="icon sm"><use href="#i-check"/></svg></span><span>Listings and offers are visible to every verified buyer.</span></li>
+          <li><span class="tick ok"><svg class="icon sm"><use href="#i-check"/></svg></span><span>Escrow payouts to M-Pesa.</span></li>
+          <li><span class="tick ok"><svg class="icon sm"><use href="#i-check"/></svg></span><span>Batches count towards EPR reporting.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ADMIN ================= -->
+<section class="view" data-view="admin" aria-labelledby="adm-h" hidden>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Operations</span>
+      <h1 id="adm-h">Platform health at a glance</h1>
+      <p>Review verification requests, resolve disputes and watch commission revenue. Sample data.</p>
+    </div>
+    <div class="row"><span class="pill ok"><svg class="icon"><use href="#i-check"/></svg>All systems normal</span></div>
+  </div>
+
+  <div class="grid g4" style="margin-bottom:24px">
+    <div class="card flag kpi"><span class="label">Awaiting review</span><span class="num-lg c-orange" id="adm-queue-n">5</span><span class="small muted">Oldest waiting 2 days</span></div>
+    <div class="card tint kpi"><span class="label">Commission this month, KES</span><span class="num-lg c-green">312k</span><span class="delta up"><svg class="icon sm"><use href="#i-up"/></svg>18%</span></div>
+    <div class="card kpi"><span class="label">Trades this week</span><span class="num-lg">214</span><span class="small muted">98.6% settled on time</span></div>
+    <div class="card kpi"><span class="label">Open disputes</span><span class="num-lg" id="adm-disp-n">2</span><span class="small muted">Median 6 hours to resolve</span></div>
+  </div>
+
+  <div class="grid split-60" style="margin-bottom:24px;align-items:start">
+    <div class="card">
+      <div class="card-head"><h2 class="h3">Verification queue</h2>
+        <div class="tabs" role="tablist" aria-label="Queue type">
+          <button role="tab" aria-selected="true" data-aq="all">All</button>
+          <button role="tab" aria-selected="false" data-aq="collector">Collectors</button>
+          <button role="tab" aria-selected="false" data-aq="buyer">Buyers</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Applicant</th><th>Type</th><th>Area</th><th>Docs</th><th class="r">Decision</th></tr></thead>
+          <tbody id="adm-queue"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2 class="h3">Commission by week</h2><span class="small muted">KES thousands</span></div>
+      <div id="adm-chart"></div>
+    </div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-head"><h2 class="h3">Disputes</h2></div>
+      <div class="stack" id="adm-disputes"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2 class="h3">Service status</h2></div>
+      <div class="stack" id="adm-health"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DESIGN SYSTEM ================= -->
+<section class="view" data-view="system" aria-labelledby="ds-h" hidden>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Design system</span>
+      <h1 id="ds-h">How Circulink looks and behaves</h1>
+      <p>The tokens and components behind every screen. Green builds structure, charcoal carries text, orange marks the one thing that needs attention.</p>
+    </div>
+  </div>
+
+  <div class="stack lg">
+    <div class="card">
+      <div class="card-head"><h2 class="h3">Colour</h2><span class="small muted">Switch the theme to see the dark values</span></div>
+      <div class="swatches" id="ds-swatches"></div>
+      <div class="grid g3" style="margin-top:24px;gap:16px">
+        <div class="stack sm"><b>Distribution</b><p class="small muted">About 70% alabaster and tints, 20% charcoal, 8% green, no more than 2% orange.</p></div>
+        <div class="stack sm"><b>Orange rule</b><p class="small muted">One orange element per screen: the number, warning or step the eye must land on.</p></div>
+        <div class="stack sm"><b>Status colour</b><p class="small muted">Red is for errors only. Blue marks information. Neither replaces the brand colours.</p></div>
+      </div>
+    </div>
+
+    <div class="grid g2" style="align-items:start">
+      <div class="card">
+        <div class="card-head"><h2 class="h3">Type</h2><span class="small muted">Montserrat and Inter</span></div>
+        <div>
+          <div class="type-row"><span class="tiny muted">Display XL</span><span class="num-lg">5–10%</span></div>
+          <div class="type-row"><span class="tiny muted">Heading</span><span class="h2">Four steps to a record</span></div>
+          <div class="type-row"><span class="tiny muted">Section</span><span class="h3">Supplier scorecard</span></div>
+          <div class="type-row"><span class="tiny muted">Body</span><span>Weight is confirmed at pickup and payment is released.</span></div>
+          <div class="type-row"><span class="tiny muted">Label</span><span class="eyebrow">Marketplace</span></div>
+          <div class="type-row"><span class="tiny muted">Caption</span><span class="small muted">KES per kg, Nairobi</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2 class="h3">Components</h2></div>
+        <div class="stack">
+          <div class="row"><button class="btn primary">Primary</button><button class="btn accent">Accent</button><button class="btn ghost">Ghost</button><button class="btn danger">Danger</button></div>
+          <div class="row"><span class="pill ok">Verified</span><span class="pill warn">In escrow</span><span class="pill bad">Disputed</span><span class="pill info">Scheduled</span><span class="pill">Draft</span></div>
+          <div class="chips"><button class="chip" aria-pressed="true">PET</button><button class="chip" aria-pressed="false">HDPE</button><button class="chip" aria-pressed="false">Paper</button></div>
+          <div class="form-grid">
+            <div class="field"><label for="ds-in">Quantity (kg)</label><input class="input" id="ds-in" value="120"></div>
+            <div class="field"><label for="ds-sel">Material</label><select class="select" id="ds-sel"><option>PET</option><option>HDPE</option></select></div>
+          </div>
+          <div class="bar"><i style="width:64%"></i><b style="left:80%"></b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2 class="h3">Icons</h2><span class="small muted">Two pixel stroke, rounded joins</span></div>
+      <div class="icon-grid" id="ds-icons"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2 class="h3">Layout rules</h2></div>
+      <div class="rule-list">
+        <div class="stack sm"><b>Grid</b><p class="small muted">Twelve columns with 24px gutters. Pages use a 60/40 split, a three-card row or a four-step flow.</p></div>
+        <div class="stack sm"><b>Radius</b><p class="small muted">24px on cards, 16px on inner blocks, 10px on inputs, full round on buttons and pills.</p></div>
+        <div class="stack sm"><b>Numbers lead</b><p class="small muted">Key figures are set large in Montserrat, with a short label and one line of context.</p></div>
+        <div class="stack sm"><b>Process rows</b><p class="small muted">Steps sit in equal containers joined by a green line with an arrowhead. The step that matters is outlined in orange.</p></div>
+        <div class="stack sm"><b>Words</b><p class="small muted">Three short points at most. Buttons say exactly what happens. Errors say how to fix it.</p></div>
+        <div class="stack sm"><b>Spacing</b><p class="small muted">Cards pad 24px, sections sit 24px apart, page margins are 32px and drop to 16px on phones.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+    </main>
+  </div>
+</div>
+
+<div class="toast-host" id="toasts" aria-live="polite"></div>
+<div id="overlay-host"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============ helpers ============ */
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (v) {
+    return String(v).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+  var fmt = function (n, d) {
+    return Number(n).toLocaleString("en-KE", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 });
+  };
+  var kes = function (n) { return "KES " + fmt(n); };
+  var short = function (n) {
+    if (n >= 1e6) return "KES " + (n / 1e6).toFixed(1) + "M";
+    if (n >= 1e3) return "KES " + (n / 1e3).toFixed(n >= 1e5 ? 0 : 1) + "k";
+    return "KES " + fmt(n);
+  };
+  var icon = function (id, cls) {
+    return '<svg class="icon ' + (cls || "") + '" aria-hidden="true"><use href="#i-' + id + '"/></svg>';
+  };
+  var initials = function (name) {
+    return name.split(/\s+/).slice(0, 2).map(function (w) { return w[0]; }).join("").toUpperCase();
+  };
+  var store = {
+    get: function (k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* ignored */ } }
+  };
+  var niceMax = function (v) {
+    var p = Math.pow(10, Math.floor(Math.log10(v)));
+    var m = v / p;
+    var n = m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10;
+    return n * p;
+  };
+
+  function toast(msg) {
+    var host = $("#toasts");
+    var t = document.createElement("div");
+    t.className = "toast";
+    t.innerHTML = icon("check") + "<span>" + esc(msg) + "</span>";
+    host.appendChild(t);
+    setTimeout(function () { t.remove(); }, 3600);
+  }
+
+  var lastFocus = null;
+  function openSheet(html) {
+    lastFocus = document.activeElement;
+    var host = $("#overlay-host");
+    host.innerHTML = '<div class="overlay" id="ov"><div class="sheet" role="dialog" aria-modal="true">' + html + "</div></div>";
+    var ov = $("#ov");
+    ov.addEventListener("click", function (e) { if (e.target === ov) closeSheet(); });
+    $$("[data-close]", ov).forEach(function (b) { b.addEventListener("click", closeSheet); });
+    var f = $("input, select, button", $(".sheet", ov));
+    if (f) f.focus();
+    return ov;
+  }
+  function closeSheet() {
+    $("#overlay-host").innerHTML = "";
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { closeSheet(); $("#rail").classList.remove("open"); }
+  });
+
+  /* ============ sample data ============ */
+  var MATERIALS = [
+    { id: "PET", name: "PET", range: [28, 36], base: 31.4, trend: [28.8, 29.4, 29.1, 30.2, 30.6, 30.1, 30.9, 31.2, 30.8, 31.5, 31.1, 31.4] },
+    { id: "HDPE", name: "HDPE", range: [30, 40], base: 35.2, trend: [33.1, 33.5, 34.2, 33.9, 34.6, 34.8, 35.4, 35.0, 35.6, 35.3, 35.9, 35.2] },
+    { id: "PP", name: "PP", range: [24, 32], base: 27.8, trend: [26.4, 26.1, 26.9, 27.2, 26.8, 27.5, 27.3, 27.9, 28.2, 27.6, 27.4, 27.8] },
+    { id: "LDPE", name: "LDPE film", range: [14, 22], base: 17.5, trend: [16.2, 16.8, 16.4, 17.1, 17.0, 16.6, 17.3, 17.8, 17.4, 17.9, 17.6, 17.5] },
+    { id: "Paper", name: "Paper and card", range: [8, 14], base: 11.2, trend: [10.1, 10.4, 10.2, 10.8, 11.0, 10.7, 11.3, 11.1, 11.5, 11.0, 11.4, 11.2] },
+    { id: "Metal", name: "Metal", range: [40, 70], base: 52.0, trend: [48.0, 49.5, 50.2, 49.8, 51.0, 50.6, 51.9, 52.8, 52.1, 53.0, 51.7, 52.0] }
+  ];
+  var matById = {};
+  MATERIALS.forEach(function (m) { matById[m.id] = m; });
+
+  var AREAS = {
+    "CBD": [400, 320], "Westlands": [330, 250], "Parklands": [372, 232], "Kibera": [332, 386],
+    "Lang'ata": [296, 452], "Eastleigh": [472, 288], "Mathare": [446, 248], "Kasarani": [566, 188],
+    "Embakasi": [566, 404], "Industrial Area": [468, 384], "Ruaraka": [506, 224], "South B": [432, 366],
+    "Donholm": [524, 332], "Athi River": [580, 540]
+  };
+  var AREA_NAMES = Object.keys(AREAS);
+  var km = function (x, y) { return Math.hypot(x - 400, y - 320) / 20; };
+
+  var supply = [
+    { id: "s1", name: "James Otieno", type: "collector", mat: "PET", qty: 340, price: 32, area: "Kibera", rating: 4.8, reviews: 24, verified: true, grade: "Washed, mixed colours", when: "Today", phone: "07•• ••• 118" },
+    { id: "s2", name: "Amina Wanjiku", type: "collector", mat: "PET", qty: 180, price: 30.5, area: "Mathare", rating: 4.6, reviews: 18, verified: true, grade: "Clean and sorted", when: "Tomorrow", phone: "07•• ••• 905" },
+    { id: "s3", name: "Peter Kamau", type: "collector", mat: "HDPE", qty: 220, price: 36, area: "Eastleigh", rating: 4.9, reviews: 32, verified: true, grade: "Clean and sorted", when: "Today", phone: "07•• ••• 482" },
+    { id: "s4", name: "Samuel Njoroge", type: "collector", mat: "Paper", qty: 640, price: 11, area: "Kasarani", rating: 4.7, reviews: 21, verified: true, grade: "Baled", when: "This weekend", phone: "07•• ••• 337" },
+    { id: "s5", name: "Grace Achieng", type: "collector", mat: "LDPE", qty: 150, price: 17.5, area: "Embakasi", rating: 4.4, reviews: 11, verified: true, grade: "Unwashed", when: "Tomorrow", phone: "07•• ••• 660" },
+    { id: "s6", name: "Daniel Mutua", type: "collector", mat: "Metal", qty: 410, price: 54, area: "Industrial Area", rating: 4.5, reviews: 15, verified: true, grade: "Baled", when: "Today", phone: "07•• ••• 271" },
+    { id: "s7", name: "Faith Wairimu", type: "collector", mat: "PET", qty: 95, price: 29, area: "Westlands", rating: 4.2, reviews: 7, verified: true, grade: "Unwashed", when: "Next week", phone: "07•• ••• 744" },
+    { id: "s8", name: "Hassan Abdi", type: "collector", mat: "PP", qty: 120, price: 27, area: "South B", rating: 4.3, reviews: 9, verified: true, grade: "Washed, mixed colours", when: "Tomorrow", phone: "07•• ••• 593" },
+    { id: "s9", name: "Lucy Moraa", type: "collector", mat: "HDPE", qty: 75, price: 34, area: "Lang'ata", rating: 4.0, reviews: 4, verified: false, grade: "Unwashed", when: "Next week", phone: "07•• ••• 828" },
+    { id: "s10", name: "Brian Kiptoo", type: "collector", mat: "PET", qty: 260, price: 31, area: "Donholm", rating: 4.6, reviews: 19, verified: true, grade: "Clean and sorted", when: "Today", phone: "07•• ••• 016" }
+  ];
+  var demand = [
+    { id: "d1", name: "Savannah Polymers Ltd", type: "buyer", mat: "PET", qty: 8000, price: 36, area: "Industrial Area", rating: 4.8, reviews: 41, verified: true, grade: "Food grade, clear", when: "Monthly", phone: "" },
+    { id: "d2", name: "Rift Pack Recyclers", type: "buyer", mat: "HDPE", qty: 5000, price: 40, area: "Embakasi", rating: 4.6, reviews: 29, verified: true, grade: "Baled, any grade", when: "Monthly", phone: "" },
+    { id: "d3", name: "Mara Fibre Mills", type: "buyer", mat: "Paper", qty: 12000, price: 13, area: "Ruaraka", rating: 4.7, reviews: 36, verified: true, grade: "Baled, any grade", when: "Monthly", phone: "" },
+    { id: "d4", name: "Athi Metals Co.", type: "buyer", mat: "Metal", qty: 6500, price: 66, area: "Athi River", rating: 4.5, reviews: 22, verified: true, grade: "Baled, any grade", when: "Weekly", phone: "" },
+    { id: "d5", name: "Tanda Beverages", type: "buyer", mat: "PET", qty: 20000, price: 38, area: "Industrial Area", rating: 4.9, reviews: 14, verified: true, grade: "Food grade, clear", when: "Monthly", phone: "", mine: true },
+    { id: "d6", name: "Kilimo Film Works", type: "buyer", mat: "LDPE", qty: 3000, price: 21, area: "Donholm", rating: 4.1, reviews: 6, verified: false, grade: "Mixed colour, washed", when: "Monthly", phone: "" }
+  ];
+
+  var pickups = [
+    { buyer: "Savannah Polymers Ltd", mat: "PET", kg: 120, slot: "Today, 11:30", status: "next" },
+    { buyer: "Rift Pack Recyclers", mat: "HDPE", kg: 85, slot: "Today, 13:00", status: "scheduled" },
+    { buyer: "Mara Fibre Mills", mat: "Paper", kg: 240, slot: "Thu, 09:00", status: "scheduled" },
+    { buyer: "Tanda Beverages", mat: "PET", kg: 310, slot: "Fri, 10:30", status: "scheduled" },
+    { buyer: "Athi Metals Co.", mat: "Metal", kg: 64, slot: "Mon, 08:00", status: "pending" }
+  ];
+  var dailyEarn = [
+    { label: "Mon", a: 2400, b: 0 }, { label: "Tue", a: 3100, b: 0 }, { label: "Wed", a: 2650, b: 0 },
+    { label: "Thu", a: 3900, b: 0 }, { label: "Fri", a: 3500, b: 0 }, { label: "Sat", a: 0, b: 1250 }, { label: "Sun", a: 0, b: 850 }
+  ];
+
+  var myDemand = [
+    { mat: "PET", spec: "Food grade, clear", vol: 20000, ceil: 38, offers: 5, status: "open" },
+    { mat: "HDPE", spec: "Baled, any grade", vol: 6000, ceil: 40, offers: 2, status: "open" },
+    { mat: "PP", spec: "Mixed colour, washed", vol: 3000, ceil: 30, offers: 0, status: "open" },
+    { mat: "LDPE", spec: "Mixed colour, washed", vol: 4000, ceil: 22, offers: 7, status: "filled" }
+  ];
+  var suppliers = [
+    { name: "James Otieno", area: "Kibera", reliability: 98, quality: 92, volume: 4200 },
+    { name: "Peter Kamau", area: "Eastleigh", reliability: 96, quality: 95, volume: 3900 },
+    { name: "Brian Kiptoo", area: "Donholm", reliability: 94, quality: 90, volume: 3100 },
+    { name: "Amina Wanjiku", area: "Mathare", reliability: 91, quality: 88, volume: 2700 },
+    { name: "Samuel Njoroge", area: "Kasarani", reliability: 89, quality: 93, volume: 5200 }
+  ];
+  var deliveries = [
+    { who: "James Otieno", what: "PET 340 kg", when: "Today, 14:00", state: "wait" },
+    { who: "Brian Kiptoo", what: "PET 260 kg", when: "Tomorrow, 09:30", state: "wait" },
+    { who: "Peter Kamau", what: "HDPE 220 kg", when: "Delivered, signed off", state: "ok" }
+  ];
+
+  /* ---------- compliance ---------- */
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"];
+  var MONTHLY = [26.0, 28.4, 31.2, 33.8, 36.0, 38.6, 41.2, 43.6, 46.2, 10.8];
+  var PERIODS = {
+    year: { label: "FY 2026", from: 0, to: 10, target: 480, daysLeft: 85, ready: 96, note: "Oct to date is 7 days" },
+    q3: { label: "Q3 2026", from: 6, to: 9, target: 120, daysLeft: 0, ready: 99, note: "" },
+    q2: { label: "Q2 2026", from: 3, to: 6, target: 120, daysLeft: 0, ready: 97, note: "" }
+  };
+  var EPR_MATS = [
+    { id: "PET", name: "PET bottles", share: 0.35, ratio: 0.82 },
+    { id: "HDPE", name: "HDPE containers", share: 0.20, ratio: 0.74 },
+    { id: "PP", name: "PP caps and tubs", share: 0.10, ratio: 0.55 },
+    { id: "LDPE", name: "LDPE film", share: 0.15, ratio: 0.42 },
+    { id: "Paper", name: "Paper and card packaging", share: 0.20, ratio: 0.80 }
+  ];
+  var SOURCES = [
+    { name: "Verified collectors", pct: 58, c: "var(--green)" },
+    { name: "Households", pct: 17, c: "var(--blue)" },
+    { name: "Aggregators", pct: 15, c: "var(--orange)" },
+    { name: "Own take-back points", pct: 10, c: "var(--faint)" }
+  ];
+  var REGS = [
+    { t: "EPR producer registration", d: "Active, renews 30 Jun 2027", s: "ok" },
+    { t: "Take-back plan on file", d: "Approved 14 Feb 2026", s: "ok" },
+    { t: "Annual compliance return", d: "Draft 70% complete, due 31 Dec", s: "wait" },
+    { t: "Environmental audit report", d: "Auditor booked for 2 Nov", s: "wait" }
+  ];
+  var BATCHES = [
+    { id: "CL-26-1042", date: "7 Oct", mat: "PET", kg: 340, src: "James Otieno", rec: "complete" },
+    { id: "CL-26-1041", date: "6 Oct", mat: "HDPE", kg: 220, src: "Peter Kamau", rec: "complete" },
+    { id: "CL-26-1039", date: "5 Oct", mat: "PET", kg: 260, src: "Brian Kiptoo", rec: "signoff" },
+    { id: "CL-26-1036", date: "3 Oct", mat: "Paper", kg: 640, src: "Samuel Njoroge", rec: "complete" },
+    { id: "CL-26-1034", date: "2 Oct", mat: "LDPE", kg: 150, src: "Grace Achieng", rec: "slip" },
+    { id: "CL-26-1031", date: "30 Sep", mat: "PET", kg: 410, src: "Amina Wanjiku", rec: "complete" },
+    { id: "CL-26-1028", date: "29 Sep", mat: "PP", kg: 120, src: "Hassan Abdi", rec: "complete" },
+    { id: "CL-26-1025", date: "27 Sep", mat: "HDPE", kg: 300, src: "Peter Kamau", rec: "complete" },
+    { id: "CL-26-1021", date: "25 Sep", mat: "PET", kg: 95, src: "Faith Wairimu", rec: "slip" },
+    { id: "CL-26-1018", date: "24 Sep", mat: "Paper", kg: 520, src: "Samuel Njoroge", rec: "complete" }
+  ];
+  var RECORD = {
+    complete: { cls: "ok", t: "Complete" },
+    signoff: { cls: "warn", t: "Awaiting buyer sign-off" },
+    slip: { cls: "bad", t: "Weigh slip missing" }
+  };
+
+  var TXS = [
+    { ref: "TX-8841", from: "Tanda Beverages", to: "James Otieno", amt: 10880, fee: 816, st: "escrow" },
+    { ref: "TX-8840", from: "Savannah Polymers Ltd", to: "Amina Wanjiku", amt: 5490, fee: 412, st: "paid" },
+    { ref: "TX-8838", from: "Rift Pack Recyclers", to: "Peter Kamau", amt: 7920, fee: 594, st: "paid" },
+    { ref: "TX-8835", from: "Mara Fibre Mills", to: "Samuel Njoroge", amt: 7040, fee: 528, st: "paid" },
+    { ref: "TX-8833", from: "Tanda Beverages", to: "Brian Kiptoo", amt: 8060, fee: 605, st: "escrow" },
+    { ref: "TX-8829", from: "Kilimo Film Works", to: "Grace Achieng", amt: 2625, fee: 197, st: "dispute" },
+    { ref: "TX-8826", from: "Athi Metals Co.", to: "Daniel Mutua", amt: 22140, fee: 1660, st: "paid" },
+    { ref: "TX-8822", from: "Savannah Polymers Ltd", to: "Faith Wairimu", amt: 2755, fee: 207, st: "paid" },
+    { ref: "TX-8819", from: "Tanda Beverages", to: "Hassan Abdi", amt: 3240, fee: 243, st: "escrow" },
+    { ref: "TX-8815", from: "Mara Fibre Mills", to: "Lucy Moraa", amt: 4080, fee: 306, st: "dispute" }
+  ];
+  var TXST = {
+    escrow: { cls: "warn", t: "In escrow" },
+    paid: { cls: "ok", t: "Paid" },
+    dispute: { cls: "bad", t: "Disputed" }
+  };
+
+  var threads = [
+    { id: "t1", name: "James Otieno", role: "Collector, Kibera", listing: "PET 340 kg at KES 32", unread: 1, msgs: [
+      { me: false, t: "Good morning. The 340 kg of PET is washed and baled.", at: "08:12" },
+      { me: true, t: "Great. Can you deliver to Industrial Area by 14:00?", at: "08:20" },
+      { me: false, t: "Yes, my truck is free after 11. I will send the weigh slip photo on arrival.", at: "08:31" }
+    ] },
+    { id: "t2", name: "Brian Kiptoo", role: "Collector, Donholm", listing: "PET 260 kg at KES 31", unread: 1, msgs: [
+      { me: false, t: "Would you take 260 kg tomorrow morning?", at: "Yesterday" },
+      { me: true, t: "Yes. 09:30 works. Price stays at KES 31.", at: "Yesterday" }
+    ] },
+    { id: "t3", name: "Peter Kamau", role: "Collector, Eastleigh", listing: "HDPE 220 kg at KES 36", unread: 0, msgs: [
+      { me: true, t: "Weight confirmed at 220 kg. Releasing payment.", at: "Mon" },
+      { me: false, t: "Thank you. Received on M-Pesa.", at: "Mon" }
+    ] },
+    { id: "t4", name: "Grace Achieng", role: "Collector, Embakasi", listing: "LDPE 150 kg at KES 17.5", unread: 1, msgs: [
+      { me: false, t: "The film is unwashed. I can drop the price to KES 16.", at: "Mon" }
+    ] }
+  ];
+
+  var queue = [
+    { id: "q1", name: "Mercy Chebet", type: "collector", area: "Kasarani", docs: "3 of 3", days: 2 },
+    { id: "q2", name: "Ngong Road Aggregators", type: "buyer", area: "Lang'ata", docs: "4 of 5", days: 2 },
+    { id: "q3", name: "Joseph Karanja", type: "collector", area: "Embakasi", docs: "3 of 3", days: 1 },
+    { id: "q4", name: "Lakeview Plastics", type: "buyer", area: "Athi River", docs: "5 of 5", days: 1 },
+    { id: "q5", name: "Rose Nyambura", type: "collector", area: "Mathare", docs: "2 of 3", days: 0 }
+  ];
+  var disputes = [
+    { id: "x1", ref: "TX-8829", text: "Film reported 20 kg lighter at delivery than at pickup.", from: "Kilimo Film Works", age: "5 h" },
+    { id: "x2", ref: "TX-8815", text: "Paper bales arrived wet. Buyer asks for a price adjustment.", from: "Mara Fibre Mills", age: "1 day" }
+  ];
+  var HEALTH = [
+    { n: "Payments and escrow", s: "ok", t: "Operational" },
+    { n: "M-Pesa payouts", s: "ok", t: "Operational" },
+    { n: "Weigh-slip sync", s: "ok", t: "Operational" },
+    { n: "Notifications", s: "warn", t: "Slower than usual" },
+    { n: "Map and routing", s: "ok", t: "Operational" }
+  ];
+  var COMM_WEEKS = [
+    { label: "W36", a: 58 }, { label: "W37", a: 64 }, { label: "W38", a: 61 }, { label: "W39", a: 72 },
+    { label: "W40", a: 79 }, { label: "W41", a: 83 }
+  ];
+
+  var VER = {
+    collector: {
+      title: "Collector details",
+      steps: ["Account", "Identity", "Location", "Review", "Verified"],
+      checks: ["Name matches the national ID", "M-Pesa number belongs to the same person", "Collection point is real and reachable", "No duplicate account"]
+    },
+    buyer: {
+      title: "Business details",
+      steps: ["Account", "Company", "Licence", "Review", "Verified"],
+      checks: ["Company registration is active", "NEMA licence is valid for the material handled", "Site address and contact are confirmed", "Authorised person is named"]
+    }
+  };
+
+  var DROPOFFS = [
+    { n: "South B Community Hub", area: "South B", d: 0.9, hrs: "Mon to Sat, 08:00 to 18:00", acc: "PET, HDPE, paper, metal" },
+    { n: "Industrial Area Buy-back Yard", area: "Industrial Area", d: 2.4, hrs: "Mon to Fri, 07:30 to 17:00", acc: "All plastics, metal" },
+    { n: "Eastleigh Sorting Point", area: "Eastleigh", d: 3.9, hrs: "Daily, 09:00 to 17:00", acc: "PET, paper, cardboard" },
+    { n: "Donholm Collection Shed", area: "Donholm", d: 5.1, hrs: "Mon to Sat, 08:00 to 16:00", acc: "PET, HDPE, LDPE film" }
+  ];
+  var HH_MONTHS = [{ label: "May", a: 14 }, { label: "Jun", a: 21 }, { label: "Jul", a: 26 }, { label: "Aug", a: 24 }, { label: "Sep", a: 31 }, { label: "Oct", a: 12 }];
+  var HH_HIST = [
+    { date: "30 Sep", mat: "PET, paper", kg: 16, kes: 240, st: "paid" },
+    { date: "23 Sep", mat: "Metal", kg: 6, kes: 310, st: "paid" },
+    { date: "16 Sep", mat: "PET", kg: 9, kes: 280, st: "paid" },
+    { date: "9 Sep", mat: "HDPE, paper", kg: 11, kes: 205, st: "paid" }
+  ];
+
+  /* ============ state ============ */
+  var state = {
+    view: "home",
+    mpMode: "supply",
+    mpMat: "all",
+    mpRadius: 8,
+    mpSort: "near",
+    mpVerified: true,
+    mpQuery: "",
+    mpSel: "s3",
+    idxMat: "PET",
+    supSort: "reliability",
+    period: "year",
+    batchFilter: "all",
+    txFilter: "all",
+    thread: "t1",
+    verType: "collector",
+    verStep: 1,
+    verFiles: [],
+    adminFilter: "all",
+    role: "buyer",
+    photos: 0,
+    hhMats: { PET: true, Paper: true },
+    hhHist: null
+  };
+
+  /* ============ charts ============ */
+  function barChart(opt) {
+    var W = opt.w || 560, H = opt.h || 240, L = 44, R = 12, T = 16, B = 30;
+    var max = opt.forceMax || niceMax(Math.max.apply(null, opt.data.map(function (d) { return d.a + (d.b || 0); })) || 1);
+    var iw = W - L - R, ih = H - T - B;
+    var bw = Math.min(44, iw / opt.data.length * 0.56);
+    var s = '<svg class="chart" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(opt.label) + '">';
+    for (var g = 0; g <= 4; g++) {
+      var y = T + ih - (ih * g / 4);
+      s += '<line class="grid-line" x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '"/>';
+      s += '<text x="' + (L - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + opt.fmt(max * g / 4) + "</text>";
+    }
+    opt.data.forEach(function (d, i) {
+      var cx = L + iw * (i + 0.5) / opt.data.length;
+      var ha = ih * d.a / max, hb = ih * (d.b || 0) / max;
+      var yb = T + ih;
+      if (ha > 0) s += '<rect x="' + (cx - bw / 2) + '" y="' + (yb - ha) + '" width="' + bw + '" height="' + ha + '" rx="5" style="fill:var(--green)"/>';
+      if (hb > 0) s += '<rect x="' + (cx - bw / 2) + '" y="' + (yb - ha - hb) + '" width="' + bw + '" height="' + hb + '" rx="5" style="fill:var(--orange)"/>';
+      s += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(d.label) + "</text>";
+      var total = d.a + (d.b || 0);
+      if (total > 0 && opt.showVals) s += '<text class="val" x="' + cx + '" y="' + (yb - ha - hb - 6) + '" text-anchor="middle">' + opt.fmt(total) + "</text>";
+    });
+    s += '<line class="axis" x1="' + L + '" x2="' + (W - R) + '" y1="' + (T + ih) + '" y2="' + (T + ih) + '"/>';
+    return s + "</svg>";
+  }
+
+  function lineChart(opt) {
+    var W = opt.w || 560, H = opt.h || 240, L = 44, R = 56, T = 16, B = 30;
+    var all = [];
+    opt.series.forEach(function (s) { all = all.concat(s.vals); });
+    var lo = opt.min != null ? opt.min : Math.floor(Math.min.apply(null, all) - 1);
+    var hi = opt.max != null ? opt.max : Math.ceil(Math.max.apply(null, all) + 1);
+    var iw = W - L - R, ih = H - T - B;
+    var X = function (i) { return L + iw * i / (opt.labels.length - 1); };
+    var Y = function (v) { return T + ih - ih * (v - lo) / (hi - lo); };
+    var s = '<svg class="chart" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(opt.label) + '">';
+    for (var g = 0; g <= 4; g++) {
+      var v = lo + (hi - lo) * g / 4, y = Y(v);
+      s += '<line class="grid-line" x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '"/>';
+      s += '<text x="' + (L - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + opt.fmt(v) + "</text>";
+    }
+    opt.labels.forEach(function (l, i) {
+      if (i % opt.every === 0 || i === opt.labels.length - 1) s += '<text x="' + X(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(l) + "</text>";
+    });
+    opt.series.forEach(function (sr) {
+      var pts = sr.vals.map(function (v, i) { return X(i) + "," + Y(v); });
+      var area = "M" + X(0) + "," + (T + ih) + " L" + pts.join(" L") + " L" + X(sr.vals.length - 1) + "," + (T + ih) + " Z";
+      if (sr.area) s += '<path d="' + area + '" style="fill:' + sr.color + ';opacity:.12"/>';
+      s += '<polyline points="' + pts.join(" ") + '" fill="none" style="stroke:' + sr.color + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+      var lx = X(sr.vals.length - 1), ly = Y(sr.vals[sr.vals.length - 1]);
+      s += '<circle cx="' + lx + '" cy="' + ly + '" r="6" style="fill:' + sr.color + ';stroke:var(--surface)" stroke-width="3"/>';
+      s += '<text class="val" x="' + (lx + 12) + '" y="' + (ly + 4) + '">' + opt.fmt(sr.vals[sr.vals.length - 1]) + "</text>";
+    });
+    return s + "</svg>";
+  }
+
+  function donut(parts, centerTop, centerBottom) {
+    var r = 64, c = 2 * Math.PI * r, off = 0;
+    var s = '<svg viewBox="0 0 180 180" width="180" height="180" role="img" aria-label="Share of collection by source">';
+    s += '<circle cx="90" cy="90" r="' + r + '" fill="none" style="stroke:var(--sunken)" stroke-width="26"/>';
+    parts.forEach(function (p) {
+      var len = c * p.pct / 100;
+      s += '<circle cx="90" cy="90" r="' + r + '" fill="none" style="stroke:' + p.c + '" stroke-width="26" stroke-dasharray="' + (len - 2) + " " + (c - len + 2) + '" stroke-dashoffset="' + (-off) + '" transform="rotate(-90 90 90)"/>';
+      off += len;
+    });
+    s += '<text x="90" y="92" text-anchor="middle" class="donut-center" style="fill:var(--fg);font-size:26px">' + centerTop + "</text>";
+    s += '<text x="90" y="112" text-anchor="middle" style="fill:var(--muted);font-size:11px">' + centerBottom + "</text>";
+    return s + "</svg>";
+  }
+
+  function spark(vals, up) {
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    var pts = vals.map(function (v, i) { return (i * 72 / (vals.length - 1)).toFixed(1) + "," + (22 - 20 * (v - lo) / ((hi - lo) || 1)).toFixed(1); });
+    return '<svg class="spark" viewBox="0 0 72 24" aria-hidden="true"><polyline points="' + pts.join(" ") + '" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke:' + (up ? "var(--green)" : "var(--orange)") + '"/></svg>';
+  }
+
+  /* ============ router ============ */
+  var VIEWS = ["home", "household", "marketplace", "collector", "buyer", "compliance", "transactions", "messages", "verification", "admin", "system"];
+  var ROLE_HOME = { collector: "collector", buyer: "buyer", admin: "admin" };
+  var ROLE_WHO = { collector: "PK", buyer: "JM", admin: "AD" };
+
+  function show(v, noHash) {
+    if (VIEWS.indexOf(v) < 0) v = "home";
+    state.view = v;
+    $$(".view").forEach(function (s) { s.hidden = s.getAttribute("data-view") !== v; });
+    $$(".nav button").forEach(function (b) {
+      if (b.getAttribute("data-go") === v) b.setAttribute("aria-current", "page");
+      else b.removeAttribute("aria-current");
+    });
+    $("#rail").classList.remove("open");
+    $("#menu-btn").setAttribute("aria-expanded", "false");
+    if (!noHash) { try { history.replaceState(null, "", "#" + v); } catch (e) { /* ignored */ } }
+    window.scrollTo(0, 0);
+    var renderer = RENDER[v];
+    if (renderer) renderer();
+  }
+  function setRole(r) {
+    state.role = r;
+    $$(".role-switch button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-role") === r)); });
+    $("#who").textContent = ROLE_WHO[r];
+  }
+
+  /* ============ HOME ============ */
+  function renderHome() {
+    $("#home-ticker").innerHTML = MATERIALS.map(function (m) {
+      var t = m.trend, ch = (t[t.length - 1] - t[t.length - 2]) / t[t.length - 2] * 100;
+      var up = ch >= 0;
+      return '<div class="ticker-row"><div><b>' + esc(m.name) + '</b><div class="tiny muted">Range ' + m.range[0] + " to " + m.range[1] + "</div></div>" +
+        spark(t, up) + '<div style="text-align:right"><div class="num-md" style="font-size:20px">' + m.base.toFixed(1) + '</div><div class="tiny ' + (up ? "c-green" : "c-orange") + '" style="font-weight:600">' + (up ? "+" : "") + ch.toFixed(1) + "%</div></div></div>";
+    }).join("");
+  }
+
+  /* ============ MARKETPLACE ============ */
+  function mpItems() {
+    var list = state.mpMode === "supply" ? supply : demand;
+    var q = state.mpQuery.toLowerCase();
+    var out = list.filter(function (it) {
+      var a = AREAS[it.area];
+      if (state.mpMat !== "all" && it.mat !== state.mpMat) return false;
+      if (km(a[0], a[1]) > state.mpRadius) return false;
+      if (state.mpVerified && !it.verified) return false;
+      if (q && (it.name + " " + it.mat + " " + it.area + " " + matById[it.mat].name).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    out.sort(function (a, b) {
+      var A = AREAS[a.area], B = AREAS[b.area];
+      if (state.mpSort === "price") return state.mpMode === "supply" ? a.price - b.price : b.price - a.price;
+      if (state.mpSort === "qty") return b.qty - a.qty;
+      if (state.mpSort === "rating") return b.rating - a.rating;
+      return km(A[0], A[1]) - km(B[0], B[1]);
+    });
+    return out;
+  }
+
+  function renderMpMaterials() {
+    var chips = [{ id: "all", name: "All" }].concat(MATERIALS);
+    $("#mp-materials").innerHTML = chips.map(function (m) {
+      return '<button type="button" class="chip" data-mat="' + m.id + '" aria-pressed="' + (state.mpMat === m.id) + '">' + esc(m.name) + "</button>";
+    }).join("");
+  }
+
+  function mapSvg(items) {
+    var s = "";
+    s += '<rect width="800" height="640" style="fill:var(--map-land)"/>';
+    s += '<path d="M0 560 C120 540 200 590 330 575 C450 560 520 610 640 590 C720 578 780 600 800 596 L800 640 L0 640 Z" style="fill:var(--map-park)"/>';
+    s += '<path d="M330 120 C380 90 460 100 500 130 C520 160 480 190 430 185 C380 180 320 160 330 120 Z" style="fill:var(--map-park)"/>';
+    s += '<path d="M0 205 C90 215 150 190 230 215 C310 240 360 300 420 330 C500 370 560 360 640 410 C700 450 760 440 800 460" fill="none" style="stroke:var(--map-water)" stroke-width="14" stroke-linecap="round"/>';
+    var roads = [
+      "M0 330 L800 310", "M400 0 L400 640", "M120 120 L400 320 L700 540", "M180 560 L400 320 L640 120",
+      "M0 450 C200 430 300 470 560 404", "M250 0 C300 150 330 250 400 320", "M560 0 C540 120 520 220 470 290", "M470 290 L568 404 L700 470"
+    ];
+    roads.forEach(function (d) { s += '<path d="' + d + '" fill="none" style="stroke:var(--map-road)" stroke-width="7" stroke-linecap="round"/>'; });
+    s += '<circle cx="400" cy="320" r="' + (state.mpRadius * 20) + '" fill="none" style="stroke:var(--green)" stroke-width="2" stroke-dasharray="6 8" opacity=".7"/>';
+    s += '<circle cx="400" cy="320" r="' + (state.mpRadius * 20) + '" style="fill:var(--green);opacity:.05"/>';
+    Object.keys(AREAS).forEach(function (n) {
+      var p = AREAS[n];
+      s += '<text x="' + p[0] + '" y="' + (p[1] + 34) + '" text-anchor="middle" style="fill:var(--faint);font-size:11px;font-family:var(--body);font-weight:500">' + esc(n) + "</text>";
+    });
+    s += '<circle cx="400" cy="320" r="9" style="fill:var(--fg);stroke:var(--surface)" stroke-width="3"/>';
+    s += '<text x="400" y="304" text-anchor="middle" style="fill:var(--fg);font-size:12px;font-weight:700;font-family:var(--display)">CBD</text>';
+    var offsets = {};
+    items.forEach(function (it) {
+      var p = AREAS[it.area];
+      var k = it.area, n = offsets[k] = (offsets[k] || 0) + 1;
+      var x = p[0] + (n - 1) * 26 - (n > 1 ? 10 : 0), y = p[1] + ((n - 1) % 2) * -22;
+      var sel = it.id === state.mpSel;
+      var label = esc(it.name) + ", " + esc(it.mat) + " " + fmt(it.qty) + " kg";
+      s += '<g class="pin" tabindex="0" role="button" aria-label="' + label + '" data-id="' + it.id + '" transform="translate(' + x + "," + y + ')">';
+      s += '<title>' + label + "</title>";
+      if (sel) s += '<circle class="ring" r="22" style="fill:var(--orange);opacity:.22"/>';
+      if (it.type === "collector") s += '<circle class="ring" r="' + (sel ? 14 : 11) + '" style="fill:' + (sel ? "var(--orange)" : "var(--green)") + ';stroke:var(--surface)" stroke-width="3"/>';
+      else s += '<rect class="ring" x="' + (sel ? -14 : -11) + '" y="' + (sel ? -14 : -11) + '" width="' + (sel ? 28 : 22) + '" height="' + (sel ? 28 : 22) + '" rx="6" style="fill:' + (sel ? "var(--orange)" : "var(--blue)") + ';stroke:var(--surface)" stroke-width="3"/>';
+      s += "</g>";
+    });
+    return s;
+  }
+
+  function renderMarketplace() {
+    renderMpMaterials();
+    var items = mpItems();
+    $("#mp-n-supply").textContent = supply.length;
+    $("#mp-n-demand").textContent = demand.length;
+    if (!items.some(function (i) { return i.id === state.mpSel; }) && items.length) state.mpSel = items[0].id;
+    $("#mp-list").innerHTML = items.length ? items.map(function (it) {
+      var a = AREAS[it.area];
+      var priceLabel = state.mpMode === "supply" ? "per kg asking" : "per kg ceiling";
+      return '<button type="button" class="listing" data-id="' + it.id + '" aria-pressed="' + (it.id === state.mpSel) + '">' +
+        '<div class="row between" style="flex-wrap:nowrap"><div class="cell-user"><span class="mini-avatar ' + (it.type === "buyer" ? "b" : "") + '">' + esc(initials(it.name)) + '</span><div><b>' + esc(it.name) + (it.mine ? ' <span class="pill">You</span>' : "") + '</b><div class="tiny muted">' + esc(it.area) + ", " + km(a[0], a[1]).toFixed(1) + ' km</div></div></div>' +
+        (it.verified ? '<span class="pill ok">' + icon("check") + "Verified</span>" : '<span class="pill warn">In review</span>') + "</div>" +
+        '<div class="row between"><div><span class="price">' + esc(it.price) + ' <small>' + priceLabel + '</small></span></div><div style="text-align:right"><b>' + fmt(it.qty) + ' kg</b><div class="tiny muted">' + esc(it.mat) + "</div></div></div></button>";
+    }).join("") : '<div class="empty card"><b>No listings match</b><span class="small">Widen the distance, clear the material filter or show unverified accounts.</span></div>';
+    $("#mp-map").innerHTML = mapSvg(items);
+    renderMpDetail(items);
+  }
+
+  function renderMpDetail(items) {
+    var list = state.mpMode === "supply" ? supply : demand;
+    var it = list.filter(function (i) { return i.id === state.mpSel; })[0];
+    var box = $("#mp-detail");
+    if (!it) { box.innerHTML = '<div class="empty"><b>Select a listing</b><span class="small">Pick a pin or a card to see the details.</span></div>'; return; }
+    var a = AREAS[it.area];
+    var total = it.qty * it.price;
+    var isSupply = it.type === "collector";
+    box.innerHTML =
+      '<div class="row" style="flex-wrap:nowrap"><span class="mini-avatar ' + (isSupply ? "" : "b") + '" style="width:44px;height:44px;font-size:14px">' + esc(initials(it.name)) + '</span><div class="grow"><h2 class="h3">' + esc(it.name) + '</h2><span class="rating">' + icon("star") + it.rating.toFixed(1) + ' <span class="muted" style="font-weight:400">(' + it.reviews + " reviews)</span></span></div></div>" +
+      '<dl class="kv"><dt>Material</dt><dd>' + esc(matById[it.mat].name) + "</dd><dt>" + (isSupply ? "Quantity" : "Volume") + "</dt><dd>" + fmt(it.qty) + " kg</dd><dt>" + (isSupply ? "Asking" : "Ceiling") + "</dt><dd>KES " + it.price + " per kg</dd><dt>Condition</dt><dd>" + esc(it.grade) + "</dd><dt>" + (isSupply ? "Ready" : "Cadence") + "</dt><dd>" + esc(it.when) + "</dd><dt>Location</dt><dd>" + esc(it.area) + ", " + km(a[0], a[1]).toFixed(1) + " km</dd></dl>" +
+      '<div class="card ' + (isSupply ? "tint" : "sand") + '" style="padding:16px"><div class="tiny muted">' + (isSupply ? "Value of this lot" : "Value per month at ceiling") + '</div><div class="num-md ' + (isSupply ? "c-green" : "") + '">' + short(total) + "</div></div>" +
+      (it.mine ? '<span class="pill info">This is your demand post</span>' : '<div class="stack sm"><button class="btn primary" data-act="offer" data-id="' + it.id + '">' + (isSupply ? "Make an offer" : "Offer material") + '</button><button class="btn ghost" data-act="chat" data-id="' + it.id + '">Message</button></div>') +
+      '<p class="tiny muted">Payment goes through escrow and is released after the weigh-in.</p>';
+  }
+
+  function offerSheet(id) {
+    var it = supply.concat(demand).filter(function (i) { return i.id === id; })[0];
+    if (!it) return;
+    var isSupply = it.type === "collector";
+    var ov = openSheet(
+      '<div class="row between" style="margin-bottom:16px"><h2 class="h2">' + (isSupply ? "Offer to " : "Supply to ") + esc(it.name) + '</h2><button class="icon-btn" data-close aria-label="Close">' + icon("x") + "</button></div>" +
+      '<form id="offer-form" class="form-grid" novalidate>' +
+      '<div class="field"><label for="of-price">Your price (KES per kg)</label><input class="input" id="of-price" type="number" step="0.5" min="1" value="' + it.price + '"></div>' +
+      '<div class="field"><label for="of-qty">Quantity (kg)</label><input class="input" id="of-qty" type="number" min="10" step="5" value="' + Math.min(it.qty, 500) + '"></div>' +
+      '<div class="field full"><label for="of-note">Note</label><textarea class="textarea" id="of-note" placeholder="Pickup time, condition, anything the other side should know"></textarea></div>' +
+      '<div class="full card sand row between" style="padding:16px"><div><div class="tiny muted">Offer total</div><div class="num-md" id="of-total"></div></div><button class="btn primary" type="submit">Send offer</button></div></form>');
+    var upd = function () { $("#of-total").textContent = kes((+$("#of-price").value || 0) * (+$("#of-qty").value || 0)); };
+    $("#of-price").addEventListener("input", upd);
+    $("#of-qty").addEventListener("input", upd);
+    upd();
+    $("#offer-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var price = +$("#of-price").value, qty = +$("#of-qty").value;
+      if (!(price > 0) || !(qty >= 10)) { toast("Enter a price and a quantity of at least 10 kg"); return; }
+      var exists = threads.filter(function (t) { return t.name === it.name; })[0];
+      var line = "Offer: " + qty + " kg of " + it.mat + " at KES " + price + " per kg." + ($("#of-note").value ? " " + $("#of-note").value : "");
+      if (exists) exists.msgs.push({ me: true, t: line, at: "Now" });
+      else threads.unshift({ id: "t" + (threads.length + 1), name: it.name, role: (isSupply ? "Collector, " : "Buyer, ") + it.area, listing: it.mat + " " + qty + " kg at KES " + price, unread: 0, msgs: [{ me: true, t: line, at: "Now" }] });
+      closeSheet();
+      toast("Offer sent to " + it.name);
+    });
+  }
+
+  function openChatWith(id) {
+    var it = supply.concat(demand).filter(function (i) { return i.id === id; })[0];
+    if (!it) return;
+    var th = threads.filter(function (t) { return t.name === it.name; })[0];
+    if (!th) {
+      th = { id: "t" + (threads.length + 1), name: it.name, role: (it.type === "collector" ? "Collector, " : "Buyer, ") + it.area, listing: it.mat + " " + fmt(it.qty) + " kg at KES " + it.price, unread: 0, msgs: [] };
+      threads.unshift(th);
+    }
+    state.thread = th.id;
+    show("messages");
+  }
+
+  /* ============ COLLECTOR ============ */
+  function fillSelects() {
+    var mats = MATERIALS.map(function (m) { return '<option value="' + m.id + '">' + esc(m.name) + "</option>"; }).join("");
+    var areas = AREA_NAMES.map(function (a) { return "<option>" + esc(a) + "</option>"; }).join("");
+    $("#cf-material").innerHTML = mats;
+    $("#bf-material").innerHTML = mats;
+    $("#cf-area").innerHTML = areas;
+    $("#cf-area").value = "Eastleigh";
+    $("#vf-area").innerHTML = areas;
+    $("#vf-area").value = "Eastleigh";
+  }
+
+  function updateCollectorForm() {
+    var m = matById[$("#cf-material").value];
+    var q = +$("#cf-qty").value || 0, p = +$("#cf-price").value || 0;
+    $("#cf-total").textContent = kes(q * p);
+    var hint = $("#cf-hint");
+    hint.textContent = "Market range " + m.range[0] + " to " + m.range[1] + " for " + m.name;
+    hint.style.color = (p && (p < m.range[0] * 0.8 || p > m.range[1] * 1.25)) ? "var(--danger)" : "";
+    if (hint.style.color) hint.textContent = "This is far from the market range of " + m.range[0] + " to " + m.range[1] + ". Buyers may skip it.";
+  }
+
+  function renderCollector() {
+    $("#col-chart").innerHTML = barChart({ data: dailyEarn, fmt: function (v) { return v >= 1000 ? (v / 1000).toFixed(v % 1000 ? 1 : 0) + "k" : Math.round(v); }, label: "Earnings by day this week", showVals: true });
+    var st = { next: ["warn", "Next stop"], scheduled: ["info", "Scheduled"], pending: ["", "Awaiting buyer"] };
+    $("#col-pickups").innerHTML = pickups.map(function (p) {
+      return '<tr><td><div class="cell-user"><span class="mini-avatar b">' + esc(initials(p.buyer)) + "</span><b>" + esc(p.buyer) + "</b></div></td><td>" + esc(p.mat) + '</td><td class="r">' + p.kg + "</td><td>" + esc(p.slot) + '</td><td><span class="pill ' + st[p.status][0] + '">' + st[p.status][1] + "</span></td></tr>";
+    }).join("");
+    updateCollectorForm();
+  }
+
+  /* ============ BUYER ============ */
+  function renderBuyer() {
+    $("#buy-index-chips").innerHTML = MATERIALS.slice(0, 4).map(function (m) {
+      return '<button type="button" class="chip" data-idx="' + m.id + '" aria-pressed="' + (state.idxMat === m.id) + '">' + esc(m.name) + "</button>";
+    }).join("");
+    var m = matById[state.idxMat];
+    var labels = ["Jul 15", "Jul 22", "Jul 29", "Aug 5", "Aug 12", "Aug 19", "Aug 26", "Sep 2", "Sep 9", "Sep 16", "Sep 23", "Sep 30"];
+    var lo = Math.floor(Math.min.apply(null, m.trend) - 1), hi = Math.ceil(Math.max.apply(null, m.trend) + 1);
+    $("#buy-index").innerHTML = lineChart({ labels: labels, every: 3, fmt: function (v) { return v.toFixed(1); }, min: lo, max: hi, label: "Price index for " + m.name, series: [{ vals: m.trend, color: "var(--green)", area: true }] });
+
+    var st = { open: ["info", "Open"], filled: ["ok", "Filled"] };
+    $("#buy-demand").innerHTML = myDemand.map(function (d) {
+      return "<tr><td><b>" + esc(d.mat) + '</b><div class="tiny muted">' + esc(d.spec) + '</div></td><td class="r">' + fmt(d.vol) + ' kg</td><td class="r">' + d.ceil + "</td><td>" + (d.offers ? '<span class="pill ' + (d.status === "open" ? "warn" : "") + '">' + d.offers + " offers</span>" : '<span class="muted">None yet</span>') + '</td><td><span class="pill ' + st[d.status][0] + '">' + st[d.status][1] + "</span></td></tr>";
+    }).join("");
+    $("#buy-open-n").textContent = myDemand.filter(function (d) { return d.status === "open"; }).length;
+
+    var key = state.supSort;
+    var sorted = suppliers.slice().sort(function (a, b) { return b[key] - a[key]; });
+    var maxV = Math.max.apply(null, suppliers.map(function (s) { return s.volume; }));
+    $("#buy-suppliers").innerHTML = sorted.map(function (s, i) {
+      var val = key === "volume" ? s.volume / maxV * 100 : s[key];
+      var label = key === "volume" ? fmt(s.volume) + " kg" : s[key] + "%";
+      return '<div class="row" style="flex-wrap:nowrap;gap:14px"><span class="mini-avatar">' + esc(initials(s.name)) + '</span><div class="grow"><div class="row between" style="gap:8px"><b>' + esc(s.name) + '</b><span class="small" style="font-weight:600">' + label + '</span></div><div class="tiny muted" style="margin-bottom:6px">' + esc(s.area) + '</div><div class="bar"><i style="width:' + val + "%;" + (i === 0 ? "" : "opacity:.65") + '"></i></div></div></div>';
+    }).join("");
+
+    $("#buy-deliveries").innerHTML = deliveries.map(function (d) {
+      return '<li><span class="tick ' + d.state + '">' + icon(d.state === "ok" ? "check" : "clock", "sm") + '</span><div><b>' + esc(d.who) + "</b><div class=\"small muted\">" + esc(d.what) + " · " + esc(d.when) + "</div></div></li>";
+    }).join("");
+    updateBuyerEstimate();
+  }
+  function updateBuyerEstimate() {
+    var v = +$("#bf-vol").value || 0, p = +$("#bf-price").value || 0;
+    $("#bf-est").textContent = "Commission at 7.5%: " + kes(v * p * 0.075) + " per month";
+  }
+
+  /* ============ COMPLIANCE ============ */
+  function renderCompliance() {
+    var P = PERIODS[state.period];
+    var vals = MONTHLY.slice(P.from, P.to), labels = MONTHS.slice(P.from, P.to);
+    var have = vals.reduce(function (a, b) { return a + b; }, 0);
+    var pct = Math.round(have / P.target * 100);
+    var gap = Math.max(0, P.target - have);
+    $("#cmp-pct").innerHTML = pct + '<span style="font-size:.5em">%</span>';
+    $("#cmp-bar").style.width = Math.min(100, pct) + "%";
+    $("#cmp-have").textContent = have.toFixed(1) + " t collected";
+    $("#cmp-need").textContent = "Target " + P.target + " t";
+    $("#cmp-days").textContent = P.daysLeft ? P.daysLeft + " days left in period" : "Period closed";
+    $("#cmp-ready").textContent = P.ready + "%";
+    var gapEl = $("#cmp-gap"), gapTxt = gapEl.nextElementSibling;
+    if (gap > 0 && P.daysLeft) {
+      var recent = MONTHLY.slice(6, 9).reduce(function (a, b) { return a + b; }, 0) / 3;
+      var proj = recent * (P.daysLeft / 30.4);
+      var miss = Math.max(0, gap - proj);
+      gapEl.textContent = gap.toFixed(1) + " t";
+      gapTxt.textContent = miss > 0.5 ? "Still to collect. At the recent pace you will miss the target by about " + Math.round(miss) + " t." : "Still to collect. The recent pace is enough to meet it.";
+    } else if (gap > 0) {
+      gapEl.textContent = gap.toFixed(1) + " t";
+      gapTxt.textContent = "Short of target when the period closed.";
+    } else {
+      gapEl.textContent = "+" + (have - P.target).toFixed(1) + " t";
+      gapTxt.textContent = "Collected above the obligation. The surplus is recorded for this period.";
+    }
+
+    var sum = EPR_MATS.reduce(function (a, m) { return a + m.share * m.ratio; }, 0);
+    var factor = (have / P.target) / sum;
+    $("#cmp-materials").innerHTML = EPR_MATS.map(function (m) {
+      var tgt = P.target * m.share, got = Math.min(tgt * 1.3, tgt * m.ratio * factor);
+      var ratio = got / tgt, hot = ratio < 0.5;
+      var scale = Math.max(tgt, got) * 1.1;
+      return '<div><div class="row between small" style="margin-bottom:8px"><b>' + esc(m.name) + '</b><span><b class="' + (hot ? "c-orange" : "") + '">' + got.toFixed(1) + '</b> <span class="muted">of ' + tgt.toFixed(1) + " t</span></span></div>" +
+        '<div class="bar"><i class="' + (hot ? "o" : "") + '" style="width:' + (got / scale * 100) + '%"></i><b style="left:' + (tgt / scale * 100) + '%"></b></div></div>';
+    }).join("");
+
+    $("#cmp-donut").innerHTML = donut(SOURCES, have.toFixed(0) + " t", "collected");
+    $("#cmp-donut-legend").innerHTML = SOURCES.map(function (s) {
+      return '<div class="row between small" style="flex-wrap:nowrap"><span class="row" style="gap:8px;flex-wrap:nowrap"><i style="width:10px;height:10px;border-radius:3px;display:inline-block;background:' + s.c + '"></i>' + esc(s.name) + "</span><b>" + s.pct + "%</b></div>";
+    }).join("");
+
+    var req = P.target / (P.to - P.from === 10 ? 12 : 3);
+    var barData = vals.map(function (v, i) { return { label: labels[i], a: v }; });
+    var W = 560, H = 240, L = 44, R = 12, T = 16, B = 30;
+    var top = niceMax(Math.max(req, Math.max.apply(null, vals)) * 1.05);
+    var chart = barChart({ data: barData, fmt: function (v) { return Math.round(v); }, label: "Monthly collection against the required pace", showVals: true, h: H, forceMax: top });
+    var yr = T + (H - T - B) - (H - T - B) * req / top;
+    $("#cmp-trend").innerHTML = chart.replace("</svg>", '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yr + '" y2="' + yr + '" style="stroke:var(--orange)" stroke-width="3" stroke-dasharray="8 6"/><text x="' + (W - R) + '" y="' + (yr - 8) + '" text-anchor="end" style="fill:var(--orange-ink);font-weight:600">Required ' + req.toFixed(0) + " t per month</text></svg>");
+
+    $("#cmp-regs").innerHTML = REGS.map(function (r) {
+      return '<li><span class="tick ' + r.s + '">' + icon(r.s === "ok" ? "check" : "clock", "sm") + "</span><div><b>" + esc(r.t) + '</b><div class="small muted">' + esc(r.d) + "</div></div></li>";
+    }).join("");
+    renderBatches();
+  }
+
+  function renderBatches() {
+    var rows = BATCHES.filter(function (b) {
+      if (state.batchFilter === "ready") return b.rec === "complete";
+      if (state.batchFilter === "gap") return b.rec !== "complete";
+      return true;
+    });
+    $("#cmp-batches").innerHTML = rows.map(function (b) {
+      var r = RECORD[b.rec];
+      return "<tr><td><b>" + b.id + "</b></td><td>" + b.date + "</td><td>" + esc(b.mat) + '</td><td class="r">' + b.kg + '</td><td><div class="cell-user"><span class="mini-avatar">' + esc(initials(b.src)) + "</span>" + esc(b.src) + '</div></td><td><span class="pill ' + r.cls + '">' + r.t + "</span></td></tr>";
+    }).join("") || '<tr><td colspan="6"><div class="empty">Nothing in this view.</div></td></tr>';
+  }
+
+  function auditPack() {
+    var P = PERIODS[state.period];
+    var vals = MONTHLY.slice(P.from, P.to);
+    var have = vals.reduce(function (a, b) { return a + b; }, 0);
+    var missing = BATCHES.filter(function (b) { return b.rec !== "complete"; }).length;
+    openSheet(
+      '<div class="row between" style="margin-bottom:16px"><h2 class="h2">Audit pack preview</h2><button class="icon-btn" data-close aria-label="Close">' + icon("x") + "</button></div>" +
+      '<div class="report-page"><div class="row between"><b style="font-family:var(--display);font-size:18px">Tanda Beverages</b><span class="pill info">' + P.label + '</span></div>' +
+      '<div class="grid g3" style="gap:12px"><div><div class="tiny muted">Target</div><div class="num-md">' + P.target + ' t</div></div><div><div class="tiny muted">Collected</div><div class="num-md c-green">' + have.toFixed(1) + ' t</div></div><div><div class="tiny muted">Batches listed</div><div class="num-md">' + BATCHES.length + "</div></div></div>" +
+      '<ul class="checklist"><li><span class="tick ok">' + icon("check", "sm") + "</span><span>Source, weight and buyer recorded for " + (BATCHES.length - missing) + " batches.</span></li>" +
+      '<li><span class="tick wait">' + icon("clock", "sm") + "</span><span>" + missing + " batches need a weigh slip or buyer sign-off before the pack is final.</span></li></ul></div>" +
+      '<p class="small muted" style="margin-top:14px">The pack is assembled from the batch trail. Downloads are switched off in this preview, so the final export is not generated here.</p>' +
+      '<div class="row" style="margin-top:16px;justify-content:flex-end"><button class="btn ghost" data-close>Close</button><button class="btn primary" id="pack-fix">Review the ' + missing + " open batches</button></div>"
+    );
+    $("#pack-fix").addEventListener("click", function () {
+      closeSheet(); state.batchFilter = "gap";
+      $$("[data-batch]").forEach(function (b) { b.setAttribute("aria-selected", String(b.getAttribute("data-batch") === "gap")); });
+      renderBatches();
+      $("#cmp-batches").scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  /* ============ PAYMENTS ============ */
+  function renderTx() {
+    var rows = TXS.filter(function (t) { return state.txFilter === "all" || t.st === state.txFilter; });
+    $("#tx-count").textContent = rows.length + " of " + TXS.length;
+    $("#tx-body").innerHTML = rows.map(function (t) {
+      var s = TXST[t.st];
+      return "<tr><td><b>" + t.ref + '</b></td><td><div class="small"><b>' + esc(t.from) + '</b></div><div class="tiny muted">to ' + esc(t.to) + '</div></td><td class="r"><b>' + fmt(t.amt) + '</b></td><td class="r muted">' + fmt(t.fee) + '</td><td><span class="pill ' + s.cls + '">' + s.t + "</span></td></tr>";
+    }).join("") || '<tr><td colspan="5"><div class="empty">No payments in this view.</div></td></tr>';
+    updateCalc();
+  }
+  function updateCalc() {
+    var v = +$("#tx-vol").value, p = +$("#tx-price").value, r = +$("#tx-rate").value;
+    $("#tx-vol-v").textContent = v;
+    $("#tx-price-v").textContent = p;
+    $("#tx-rate-v").textContent = r.toFixed(1);
+    var gmv = v * 1000 * p;
+    $("#tx-gmv").textContent = short(gmv);
+    $("#tx-fee").textContent = short(gmv * r / 100);
+  }
+
+  /* ============ MESSAGES ============ */
+  function renderMessages() {
+    var cur = threads.filter(function (t) { return t.id === state.thread; })[0] || threads[0];
+    state.thread = cur.id;
+    cur.unread = 0;
+    var unread = threads.reduce(function (a, t) { return a + t.unread; }, 0);
+    var badge = $("#msg-count");
+    badge.textContent = unread;
+    badge.hidden = unread === 0;
+    $("#threads").innerHTML = threads.map(function (t) {
+      var last = t.msgs[t.msgs.length - 1];
+      return '<button class="thread" role="listitem" data-th="' + t.id + '" aria-current="' + (t.id === cur.id) + '"><span class="mini-avatar" style="width:40px;height:40px">' + esc(initials(t.name)) + '</span><span class="grow"><span class="row between" style="flex-wrap:nowrap"><span class="t-name">' + esc(t.name) + '</span>' + (t.unread ? '<span class="pill warn">New</span>' : "") + '</span><span class="t-snip">' + esc(last ? last.t : "No messages yet") + "</span></span></button>";
+    }).join("");
+    $("#convo-head").innerHTML = '<span class="mini-avatar" style="width:40px;height:40px">' + esc(initials(cur.name)) + '</span><div class="grow"><b>' + esc(cur.name) + '</b><div class="small muted">' + esc(cur.role) + '</div></div><span class="pill ok">' + icon("shield") + "Verified</span>";
+    $("#msgs").innerHTML = cur.msgs.length ? cur.msgs.map(function (m) {
+      return '<div class="msg ' + (m.me ? "me" : "") + '">' + esc(m.t) + "<time>" + esc(m.at) + "</time></div>";
+    }).join("") : '<div class="empty"><b>Start the conversation</b><span class="small">Agree price, weight and pickup time here.</span></div>';
+    var box = $("#msgs"); box.scrollTop = box.scrollHeight;
+    $("#deal").innerHTML =
+      '<h2 class="h3">Deal summary</h2><div class="card sand" style="padding:16px"><div class="tiny muted">Listing</div><b>' + esc(cur.listing) + '</b></div>' +
+      '<ol class="checklist"><li><span class="tick ok">' + icon("check", "sm") + '</span><span>Price agreed</span></li><li><span class="tick wait">' + icon("clock", "sm") + '</span><span>Pickup time to confirm</span></li><li><span class="tick">' + icon("scale", "sm") + '</span><span>Weigh-in</span></li><li><span class="tick">' + icon("wallet", "sm") + '</span><span>Payment released</span></li></ol>' +
+      '<button class="btn primary" id="deal-confirm">Confirm pickup</button><button class="btn ghost" data-go="transactions">View payment</button>';
+  }
+
+  /* ============ VERIFICATION ============ */
+  function renderVerification() {
+    var V = VER[state.verType];
+    $("#ver-title").textContent = V.title;
+    $("#vf-nema-field").hidden = state.verType !== "buyer";
+    $("#ver-steps").innerHTML = V.steps.map(function (s, i) {
+      var cls = i < state.verStep ? "done" : i === state.verStep ? "now" : "";
+      return '<li class="' + cls + '"><span class="tiny muted">Step ' + (i + 1) + "</span>" + esc(s) + "</li>";
+    }).join("");
+    var done = state.verStep >= V.steps.length - 1;
+    var pill = $("#ver-state");
+    pill.className = "pill " + (done ? "ok" : state.verStep >= 3 ? "info" : "warn");
+    pill.textContent = done ? "Verified" : state.verStep >= 3 ? "Under review" : "In progress";
+    $("#ver-checks").innerHTML = V.checks.map(function (c) {
+      return '<li><span class="tick ' + (done ? "ok" : "") + '">' + icon("check", "sm") + "</span><span>" + esc(c) + "</span></li>";
+    }).join("");
+    $("#vf-list").innerHTML = state.verFiles.map(function (f) {
+      return '<li><span class="tick ok">' + icon("check", "sm") + '</span><span class="small">' + esc(f) + "</span></li>";
+    }).join("");
+  }
+
+  /* ============ ADMIN ============ */
+  function renderAdmin() {
+    var rows = queue.filter(function (q) { return state.adminFilter === "all" || q.type === state.adminFilter; });
+    $("#adm-queue").innerHTML = rows.map(function (q) {
+      return '<tr><td><div class="cell-user"><span class="mini-avatar ' + (q.type === "buyer" ? "b" : "") + '">' + esc(initials(q.name)) + "</span><div><b>" + esc(q.name) + '</b><div class="tiny muted">Waiting ' + (q.days ? q.days + (q.days === 1 ? " day" : " days") : "since today") + "</div></div></div></td><td>" + (q.type === "buyer" ? "Buyer" : "Collector") + "</td><td>" + esc(q.area) + '</td><td><span class="pill ' + (q.docs.charAt(0) === q.docs.charAt(5) ? "ok" : "warn") + '">' + q.docs + '</span></td><td class="r"><div class="row" style="justify-content:flex-end;gap:6px;flex-wrap:nowrap"><button class="btn sm danger" data-q="reject" data-id="' + q.id + '">Decline</button><button class="btn sm primary" data-q="approve" data-id="' + q.id + '">Approve</button></div></td></tr>';
+    }).join("") || '<tr><td colspan="5"><div class="empty"><b>Queue is clear</b><span class="small">New applications appear here.</span></div></td></tr>';
+    $("#adm-queue-n").textContent = queue.length;
+    $("#adm-disp-n").textContent = disputes.length;
+    $("#adm-chart").innerHTML = barChart({ data: COMM_WEEKS, fmt: function (v) { return Math.round(v); }, label: "Commission by week in KES thousands", showVals: true, w: 420, h: 230 });
+    $("#adm-disputes").innerHTML = disputes.length ? disputes.map(function (d) {
+      return '<div class="card sand" style="padding:16px"><div class="row between"><b>' + d.ref + '</b><span class="pill warn">Open ' + d.age + '</span></div><p class="small" style="margin:6px 0 12px">' + esc(d.text) + '</p><div class="row between"><span class="tiny muted">Raised by ' + esc(d.from) + '</span><button class="btn sm ghost" data-d="' + d.id + '">Mark resolved</button></div></div>';
+    }).join("") : '<div class="empty"><b>No open disputes</b></div>';
+    $("#adm-health").innerHTML = HEALTH.map(function (h) {
+      return '<div class="row between"><span class="row" style="gap:10px"><span class="icon-chip ' + (h.s === "ok" ? "" : "orange") + '" style="width:32px;height:32px;border-radius:10px">' + icon(h.s === "ok" ? "check" : "clock", "sm") + "</span>" + esc(h.n) + '</span><span class="pill ' + h.s + '">' + h.t + "</span></div>";
+    }).join("");
+  }
+
+  /* ============ DESIGN SYSTEM ============ */
+  var TOKENS = [
+    ["Alabaster", "--bg", "Page"], ["Surface", "--surface", "Cards"], ["Sand", "--surface-2", "Callouts"],
+    ["Charcoal", "--fg", "Text"], ["Leaf green", "--green", "Primary"], ["Green tint", "--green-tint", "Containers"],
+    ["Sunrise orange", "--orange", "One highlight"], ["Orange tint", "--orange-tint", "Warnings"],
+    ["Info blue", "--blue", "Information"], ["Error red", "--danger", "Errors only"]
+  ];
+  var ICONS = ["home", "map", "truck", "building", "shield", "wallet", "users", "chat", "chart", "recycle", "leaf", "check", "search", "bell", "plus", "doc", "clock", "arrow", "star", "pin", "upload", "flag", "scale", "bolt", "lock", "filter", "send", "grid"];
+  function hex(c) {
+    var m = c.match(/\d+(\.\d+)?/g);
+    if (!m) return c;
+    return "#" + m.slice(0, 3).map(function (n) { return ("0" + Math.round(+n).toString(16)).slice(-2); }).join("").toUpperCase();
+  }
+  function renderSystem() {
+    var cs = getComputedStyle(document.documentElement);
+    $("#ds-swatches").innerHTML = TOKENS.map(function (t) {
+      return '<div class="swatch"><div class="chipc" style="background:var(' + t[1] + ')"></div><div class="meta"><b>' + t[0] + "</b>" + hex(cs.getPropertyValue(t[1]).trim() ? colorOf(t[1]) : "") + " · " + t[2] + "</div></div>";
+    }).join("");
+    $("#ds-icons").innerHTML = ICONS.map(function (i) {
+      return '<div class="icon-cell"><svg class="icon lg" style="color:var(--fg)"><use href="#i-' + i + '"/></svg>' + i + "</div>";
+    }).join("");
+  }
+  function colorOf(token) {
+    var d = document.createElement("span");
+    d.style.color = "var(" + token + ")";
+    document.body.appendChild(d);
+    var c = getComputedStyle(d).color;
+    d.remove();
+    return c;
+  }
+
+  /* ============ HOUSEHOLD ============ */
+  function hhEstimate() {
+    var ids = Object.keys(state.hhMats).filter(function (k) { return state.hhMats[k]; });
+    var bags = +$("#hh-bags").value || 0;
+    var avg = ids.length ? ids.reduce(function (a, k) { return a + matById[k].base * 0.55; }, 0) / ids.length : 0;
+    $("#hh-est").textContent = ids.length ? kes(bags * 5 * avg) : "Pick a material";
+  }
+  function renderHousehold() {
+    $("#hh-mats").innerHTML = ["PET", "HDPE", "Paper", "Metal", "LDPE"].map(function (k) {
+      return '<button type="button" class="chip" data-hh="' + k + '" aria-pressed="' + (!!state.hhMats[k]) + '">' + esc(matById[k].name) + "</button>";
+    }).join("");
+    $("#hh-chart").innerHTML = barChart({ data: HH_MONTHS, fmt: function (v) { return Math.round(v); }, label: "Kilograms recycled per month", showVals: true, w: 420, h: 220 });
+    if (!state.hhHist) state.hhHist = HH_HIST.slice();
+    var st = { paid: ["ok", "Paid"], requested: ["warn", "Requested"] };
+    $("#hh-history").innerHTML = state.hhHist.map(function (h) {
+      return "<tr><td>" + esc(h.date) + "</td><td>" + esc(h.mat) + '</td><td class="r">' + h.kg + '</td><td class="r">' + (h.st === "paid" ? fmt(h.kes) : "Pending") + '</td><td><span class="pill ' + st[h.st][0] + '">' + st[h.st][1] + "</span></td></tr>";
+    }).join("");
+    $("#hh-points").innerHTML = DROPOFFS.map(function (p) {
+      return '<div class="point"><span class="icon-chip"><svg class="icon"><use href="#i-pin"/></svg></span><div class="grow"><div class="row between" style="flex-wrap:nowrap"><b>' + esc(p.n) + '</b><span class="pill">' + p.d.toFixed(1) + ' km</span></div><div class="small muted">' + esc(p.hrs) + '</div><div class="tiny muted">Accepts ' + esc(p.acc) + "</div></div></div>";
+    }).join("");
+    hhEstimate();
+  }
+
+  var RENDER = {
+    home: renderHome, household: renderHousehold, marketplace: renderMarketplace, collector: renderCollector, buyer: renderBuyer,
+    compliance: renderCompliance, transactions: renderTx, messages: renderMessages, verification: renderVerification,
+    admin: renderAdmin, system: renderSystem
+  };
+
+  /* ============ events ============ */
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-go]");
+    if (t) { e.preventDefault(); show(t.getAttribute("data-go")); return; }
+
+    var pin = e.target.closest(".pin");
+    if (pin) { state.mpSel = pin.getAttribute("data-id"); renderMarketplace(); return; }
+    var lst = e.target.closest(".listing");
+    if (lst) { state.mpSel = lst.getAttribute("data-id"); renderMarketplace(); return; }
+    var mat = e.target.closest("[data-mat]");
+    if (mat) { state.mpMat = mat.getAttribute("data-mat"); renderMarketplace(); return; }
+    var mode = e.target.closest("[data-mp-mode]");
+    if (mode) {
+      state.mpMode = mode.getAttribute("data-mp-mode");
+      state.mpSel = (state.mpMode === "supply" ? supply : demand)[0].id;
+      $("#mp-tab-supply").setAttribute("aria-selected", String(state.mpMode === "supply"));
+      $("#mp-tab-demand").setAttribute("aria-selected", String(state.mpMode === "demand"));
+      renderMarketplace(); return;
+    }
+    var act = e.target.closest("[data-act]");
+    if (act) { if (act.getAttribute("data-act") === "offer") offerSheet(act.getAttribute("data-id")); else openChatWith(act.getAttribute("data-id")); return; }
+
+    var hm = e.target.closest("[data-hh]");
+    if (hm) { var hk = hm.getAttribute("data-hh"); state.hhMats[hk] = !state.hhMats[hk]; hm.setAttribute("aria-pressed", String(!!state.hhMats[hk])); hhEstimate(); return; }
+    if (e.target.closest("#hh-resched")) { toast("Ask James for a new time in Messages"); return; }
+    var idx = e.target.closest("[data-idx]");
+    if (idx) { state.idxMat = idx.getAttribute("data-idx"); renderBuyer(); return; }
+    var sup = e.target.closest("[data-sup]");
+    if (sup) {
+      state.supSort = sup.getAttribute("data-sup");
+      $$("[data-sup]").forEach(function (b) { b.setAttribute("aria-selected", String(b === sup)); });
+      renderBuyer(); return;
+    }
+    var bt = e.target.closest("[data-batch]");
+    if (bt) {
+      state.batchFilter = bt.getAttribute("data-batch");
+      $$("[data-batch]").forEach(function (b) { b.setAttribute("aria-selected", String(b === bt)); });
+      renderBatches(); return;
+    }
+    var tx = e.target.closest("[data-tx]");
+    if (tx) {
+      state.txFilter = tx.getAttribute("data-tx");
+      $$("[data-tx]").forEach(function (b) { b.setAttribute("aria-selected", String(b === tx)); });
+      renderTx(); return;
+    }
+    var th = e.target.closest("[data-th]");
+    if (th) { state.thread = th.getAttribute("data-th"); renderMessages(); return; }
+    var vt = e.target.closest("[data-ver]");
+    if (vt) {
+      state.verType = vt.getAttribute("data-ver"); state.verStep = 1; state.verFiles = [];
+      $$("[data-ver]").forEach(function (b) { b.setAttribute("aria-selected", String(b === vt)); });
+      renderVerification(); return;
+    }
+    var aq = e.target.closest("[data-aq]");
+    if (aq) {
+      state.adminFilter = aq.getAttribute("data-aq");
+      $$("[data-aq]").forEach(function (b) { b.setAttribute("aria-selected", String(b === aq)); });
+      renderAdmin(); return;
+    }
+    var q = e.target.closest("[data-q]");
+    if (q) {
+      var id = q.getAttribute("data-id"), who = queue.filter(function (x) { return x.id === id; })[0];
+      queue = queue.filter(function (x) { return x.id !== id; });
+      toast((q.getAttribute("data-q") === "approve" ? "Approved " : "Declined ") + who.name);
+      renderAdmin(); return;
+    }
+    var dd = e.target.closest("[data-d]");
+    if (dd) { disputes = disputes.filter(function (x) { return x.id !== dd.getAttribute("data-d"); }); toast("Dispute marked resolved"); renderAdmin(); return; }
+    var rl = e.target.closest("[data-role]");
+    if (rl) { var r = rl.getAttribute("data-role"); setRole(r); show(ROLE_HOME[r]); return; }
+    if (e.target.closest("#deal-confirm")) { toast("Pickup confirmed. Payment will release after the weigh-in."); return; }
+    if (e.target.closest("#col-new-btn")) { $("#col-form-card").scrollIntoView({ behavior: "smooth", block: "start" }); $("#cf-qty").focus({ preventScroll: true }); return; }
+    if (e.target.closest("#buy-new-btn")) { $("#buy-form-card").scrollIntoView({ behavior: "smooth", block: "start" }); $("#bf-vol").focus({ preventScroll: true }); return; }
+    if (e.target.closest("#cmp-pack-btn")) { auditPack(); return; }
+    if (e.target.closest("#bell-btn")) {
+      openSheet('<div class="row between" style="margin-bottom:16px"><h2 class="h2">Notifications</h2><button class="icon-btn" data-close aria-label="Close">' + icon("x") + '</button></div><ul class="checklist"><li><span class="tick wait">' + icon("clock", "sm") + '</span><div><b>5 offers on your PET demand post</b><div class="small muted">Lowest is KES 31 per kg</div></div></li><li><span class="tick ok">' + icon("check", "sm") + '</span><div><b>Batch CL-26-1041 is audit-ready</b><div class="small muted">HDPE 220 kg from Peter Kamau</div></div></li><li><span class="tick wait">' + icon("flag", "sm") + '</span><div><b>FY 2026 collection is behind pace</b><div class="small muted">Open the compliance dashboard for the gap by material</div></div></li></ul>');
+      return;
+    }
+    if (e.target.closest("#theme-btn")) { toggleTheme(); return; }
+    if (e.target.closest("#menu-btn")) {
+      var rail = $("#rail"); rail.classList.toggle("open");
+      $("#menu-btn").setAttribute("aria-expanded", String(rail.classList.contains("open"))); return;
+    }
+    var chip = e.target.closest(".chip");
+    if (chip && chip.closest("#view-none")) { return; }
+  });
+
+  function toggleTheme() {
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    var next = cur === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    store.set("circulink-theme", next);
+    $("#theme-btn").innerHTML = icon(next === "dark" ? "sun" : "moon");
+    if (state.view === "system") renderSystem();
+  }
+
+  /* inputs */
+  $("#mp-radius").addEventListener("input", function (e) { state.mpRadius = +e.target.value; $("#mp-radius-v").textContent = state.mpRadius; renderMarketplace(); });
+  $("#mp-sort").addEventListener("change", function (e) { state.mpSort = e.target.value; renderMarketplace(); });
+  $("#mp-verified").addEventListener("change", function (e) { state.mpVerified = e.target.checked; renderMarketplace(); });
+  $("#global-search").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { state.mpQuery = e.target.value.trim(); show("marketplace"); }
+  });
+  ["cf-material", "cf-qty", "cf-price"].forEach(function (id) { $("#" + id).addEventListener("input", updateCollectorForm); });
+  $("#cf-material").addEventListener("change", function () {
+    var m = matById[$("#cf-material").value];
+    $("#cf-price").value = m.base.toFixed(1).replace(/\.0$/, "");
+    updateCollectorForm();
+  });
+  ["bf-vol", "bf-price"].forEach(function (id) { $("#" + id).addEventListener("input", updateBuyerEstimate); });
+  ["tx-vol", "tx-price", "tx-rate"].forEach(function (id) { $("#" + id).addEventListener("input", updateCalc); });
+  $("#hh-bags").addEventListener("input", hhEstimate);
+  $("#hh-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var ids = Object.keys(state.hhMats).filter(function (k) { return state.hhMats[k]; });
+    var bags = +$("#hh-bags").value;
+    if (!ids.length) { toast("Choose at least one material"); return; }
+    if (!(bags >= 1)) { toast("Enter the number of bags"); $("#hh-bags").focus(); return; }
+    state.hhHist.unshift({ date: $("#hh-date").value, mat: ids.join(", "), kg: bags * 5, kes: 0, st: "requested" });
+    toast("Pickup requested for " + $("#hh-date").value + ", " + $("#hh-win").value);
+    renderHousehold();
+  });
+  $("#cmp-period").addEventListener("change", function (e) { state.period = e.target.value; renderCompliance(); });
+
+  function wireDrop(dropId, inputId, onFiles) {
+    var drop = $("#" + dropId), input = $("#" + inputId);
+    input.addEventListener("change", function () { onFiles(Array.prototype.slice.call(input.files)); });
+    ["dragenter", "dragover"].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.add("over"); }); });
+    ["dragleave", "drop"].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.remove("over"); }); });
+    drop.addEventListener("drop", function (e) { onFiles(Array.prototype.slice.call(e.dataTransfer.files)); });
+  }
+  wireDrop("cf-drop", "cf-files", function (files) {
+    state.photos = files.length;
+    $("#cf-files-n").textContent = files.length ? files.length + (files.length === 1 ? " photo added" : " photos added") : "No photos added";
+  });
+  wireDrop("vf-drop", "vf-files", function (files) {
+    files.forEach(function (f) { if (state.verFiles.indexOf(f.name) < 0) state.verFiles.push(f.name); });
+    renderVerification();
+  });
+
+  $("#col-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var qty = +$("#cf-qty").value, price = +$("#cf-price").value;
+    if (!(qty >= 10)) { toast("Quantity must be at least 10 kg"); $("#cf-qty").focus(); return; }
+    if (!(price > 0)) { toast("Enter an asking price"); $("#cf-price").focus(); return; }
+    supply.unshift({ id: "s" + (supply.length + 1) + Date.now() % 1000, name: "Peter Kamau", type: "collector", mat: $("#cf-material").value, qty: qty, price: price, area: $("#cf-area").value, rating: 4.9, reviews: 32, verified: true, grade: $("#cf-grade").value, when: $("#cf-when").value, phone: "" });
+    state.mpSel = supply[0].id; state.mpMode = "supply";
+    toast("Listing published to the marketplace");
+  });
+  $("#buy-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var vol = +$("#bf-vol").value, price = +$("#bf-price").value;
+    if (!(vol >= 100)) { toast("Volume must be at least 100 kg"); $("#bf-vol").focus(); return; }
+    if (!(price > 0)) { toast("Enter a price ceiling"); $("#bf-price").focus(); return; }
+    var mat = $("#bf-material").value, spec = $("#bf-spec").value, site = $("#bf-site").value;
+    myDemand.unshift({ mat: mat, spec: spec, vol: vol, ceil: price, offers: 0, status: "open" });
+    var area = AREAS[site.replace(", Nairobi", "")] ? site.replace(", Nairobi", "") : "Industrial Area";
+    demand.unshift({ id: "d" + (demand.length + 1) + Date.now() % 1000, name: "Tanda Beverages", type: "buyer", mat: mat, qty: vol, price: price, area: area, rating: 4.9, reviews: 14, verified: true, grade: spec, when: "Monthly", phone: "", mine: true });
+    toast("Demand post is live for verified collectors");
+    renderBuyer();
+  });
+  $("#composer").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var inp = $("#msg-input"), v = inp.value.trim();
+    if (!v) return;
+    var cur = threads.filter(function (t) { return t.id === state.thread; })[0];
+    cur.msgs.push({ me: true, t: v, at: "Now" });
+    inp.value = "";
+    renderMessages();
+  });
+  $("#ver-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var V = VER[state.verType];
+    if (!$("#vf-id").value.trim()) { toast("Enter your ID or registration number"); $("#vf-id").focus(); return; }
+    if (state.verType === "buyer" && !$("#vf-nema").value.trim()) { toast("Enter your NEMA licence number"); $("#vf-nema").focus(); return; }
+    if (!state.verFiles.length) { toast("Add at least one document"); return; }
+    state.verStep = 3;
+    renderVerification();
+    toast("Submitted. A reviewer will respond within two working days.");
+    window.setTimeout(function () {
+      if (state.verStep === 3) { state.verStep = V.steps.length - 1; renderVerification(); toast("Review complete (simulated). Account verified."); }
+    }, 4000);
+  });
+  window.addEventListener("hashchange", function () {
+    var h = location.hash.replace("#", "");
+    if (h && h !== state.view) show(h, true);
+  });
+
+  /* ============ init ============ */
+  fillSelects();
+  $("#hh-area").innerHTML = AREA_NAMES.map(function (a) { return "<option>" + esc(a) + "</option>"; }).join("");
+  $("#hh-area").value = "South B";
+  var savedTheme = store.get("circulink-theme");
+  if (savedTheme === "dark" || savedTheme === "light") {
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  }
+  var isDark = (document.documentElement.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
+  $("#theme-btn").innerHTML = icon(isDark ? "sun" : "moon");
+  setRole("buyer");
+  var start = location.hash.replace("#", "");
+  show(VIEWS.indexOf(start) >= 0 ? start : "home", true);
+  var unread = threads.reduce(function (a, t) { return a + t.unread; }, 0);
+  $("#msg-count").textContent = unread;
+})();
+</script>
+
+</body>
+</html>
